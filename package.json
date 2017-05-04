@@ -1,0 +1,27 @@
+{
+  "name": "firma",
+  "version": "1.0.0",
+  "description": "Authentication API for BlankBox",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blankbox/firma.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/blankbox/firma/issues"
+  },
+  "homepage": "https://github.com/blankbox/firma#readme",
+  "dependencies": {
+    "dotenv-safe": "^4.0.4",
+    "express": "^4.15.2",
+    "express-graphql": "^0.6.4",
+    "graphql": "^0.9.6",
+    "morgan": "^1.8.1",
+    "yn": "^1.2.0"
+  }
+}
