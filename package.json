@@ -17,11 +17,10 @@
   },
   "homepage": "https://github.com/blankbox/firma#readme",
   "dependencies": {
+    "body-parser": "^1.17.1",
     "dotenv-safe": "^4.0.4",
     "express": "^4.15.2",
-    "express-graphql": "^0.6.4",
     "graphql": "^0.9.6",
     "morgan": "^1.8.1",
-    "yn": "^1.2.0"
   }
 }
