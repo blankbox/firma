@@ -33,7 +33,9 @@ var QueryType = new GraphQLObjectType({
   fields: () => ({
     todos: {
       type: new GraphQLList(TodoType),
-      resolve: () => TODOs
+      resolve: (root, args) => {
+        return TODOs
+      }
     }
   })
 });
@@ -48,12 +50,13 @@ var MutationAdd = {
     }
   },
   resolve: (root, args) => {
+    var id = TODOs.length;
     TODOs.push({
-      id: TODOs.length,
+      id: id,
       title: args.title,
       completed: false
     });
-    return TODOs;
+    return [TODOs[id]];
   }
 };
 

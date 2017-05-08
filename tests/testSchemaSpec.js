@@ -58,3 +58,26 @@ describe('Get todos:', function() {
     assert.equal('[object Array]', Object.prototype.toString.apply(JSON.parse(response.body).data.todos));
   });
 });
+
+describe('Get schema:', function() {
+
+  var response;
+  before (function(done) {
+    requestContent.body = '{__schema { mutationType {fields {name}}}}';
+    request(requestContent, function(error, res, body) {
+    if (!error) {
+        response = res;
+        done();
+      }
+    });
+  });
+
+  it('returns 200', function() {
+    assert.equal(200, response.statusCode);
+  });
+
+  it('returns a schema', function() {
+    var keys = Object.keys(JSON.parse(response.body).data);
+    assert.equal('__schema', keys[0]);
+  });
+});
