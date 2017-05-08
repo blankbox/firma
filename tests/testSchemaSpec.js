@@ -21,7 +21,6 @@ describe('Add todo:', function() {
   before (function(done) {
     requestContent.body = 'mutation {add (title:"Say hello world") { title }}';
     request(requestContent, function(error, res, body) {
-      console.log(body);
       if (!error) {
         response = res;
         done();
