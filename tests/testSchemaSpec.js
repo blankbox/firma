@@ -1,10 +1,9 @@
-require('dotenv-safe').load('../.env');
+/* eslint-env node, mocha */
 
+require('dotenv-safe').load('../.env');
 var assert = require('assert');
 var request = require('request');
 var url = 'http://localhost:' + process.env.PORT + '/graphql';
-
-
 
 var requestContent = {
   method: 'POST',
@@ -20,7 +19,7 @@ describe('Add todo:', function() {
   var response;
   before (function(done) {
     requestContent.body = 'mutation {add (title:"Say hello world") { title }}';
-    request(requestContent, function(error, res, body) {
+    request(requestContent, function(error, res) {
       if (!error) {
         response = res;
         done();
@@ -42,7 +41,7 @@ describe('Get todos:', function() {
   var response;
   before (function(done) {
     requestContent.body = 'query {todos { title, id }}';
-    request(requestContent, function(error, res, body) {
+    request(requestContent, function(error, res) {
       if (!error) {
         response = res;
         done();
@@ -64,7 +63,7 @@ describe('Get schema:', function() {
   var response;
   before (function(done) {
     requestContent.body = '{__schema { mutationType {fields {name}}}}';
-    request(requestContent, function(error, res, body) {
+    request(requestContent, function(error, res) {
     if (!error) {
         response = res;
         done();
