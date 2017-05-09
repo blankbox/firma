@@ -1,0 +1,15 @@
+{
+  "env": {
+    "node": true
+  },
+  "parserOptions":{
+    "ecmaVersion":6
+  },
+  "plugins": [
+    "mocha"
+  ],
+  "rules": {
+    "no-console": 0
+  },
+  "extends": "eslint:recommended"
+}
