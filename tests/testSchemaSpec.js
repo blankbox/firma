@@ -1,11 +1,11 @@
 /* eslint-env node, mocha */
 
 require('dotenv-safe').load('../.env');
-var assert = require('assert');
-var request = require('request');
-var url = 'http://localhost:' + process.env.PORT + '/graphql';
+const assert = require('assert');
+const request = require('request');
+let url = 'http://localhost:' + process.env.PORT + '/graphql';
 
-var requestContent = {
+let requestContent = {
   method: 'POST',
   uri: url,
   headers: {
@@ -14,12 +14,13 @@ var requestContent = {
   body: ''
 };
 
-describe('Add todo:', function() {
 
-  var response;
-  before (function(done) {
+describe('Add todo:', () => {
+
+  let response;
+  before (done => {
     requestContent.body = 'mutation {add (title:"Say hello world") { title }}';
-    request(requestContent, function(error, res) {
+    request(requestContent, (error, res) => {
       if (!error) {
         response = res;
         done();
@@ -27,21 +28,21 @@ describe('Add todo:', function() {
     });
   });
 
-  it('returns 200', function() {
+  it('returns 200', () => {
     assert.equal(200, response.statusCode);
   });
 
-  it('returns \'Say hello world\'', function() {
+  it('returns \'Say hello world\'', () => {
     assert.equal('Say hello world', JSON.parse(response.body).data.add.pop().title);
   });
 });
 
-describe('Get todos:', function() {
+describe('Get todos:', () => {
 
-  var response;
-  before (function(done) {
+  let response;
+  before (done => {
     requestContent.body = 'query {todos { title, id }}';
-    request(requestContent, function(error, res) {
+    request(requestContent, (error, res) => {
       if (!error) {
         response = res;
         done();
@@ -49,21 +50,21 @@ describe('Get todos:', function() {
     });
   });
 
-  it('returns 200', function() {
+  it('returns 200', () => {
     assert.equal(200, response.statusCode);
   });
 
-  it('returns an array of todos', function() {
+  it('returns an array of todos', () => {
     assert.equal('[object Array]', Object.prototype.toString.apply(JSON.parse(response.body).data.todos));
   });
 });
 
-describe('Get schema:', function() {
+describe('Get schema:', () => {
 
-  var response;
-  before (function(done) {
+  let response;
+  before (done => {
     requestContent.body = '{__schema { mutationType {fields {name}}}}';
-    request(requestContent, function(error, res) {
+    request(requestContent, (error, res) => {
     if (!error) {
         response = res;
         done();
@@ -71,12 +72,12 @@ describe('Get schema:', function() {
     });
   });
 
-  it('returns 200', function() {
+  it('returns 200', () => {
     assert.equal(200, response.statusCode);
   });
 
-  it('returns a schema', function() {
-    var keys = Object.keys(JSON.parse(response.body).data);
+  it('returns a schema', () => {
+    let keys = Object.keys(JSON.parse(response.body).data);
     assert.equal('__schema', keys[0]);
   });
 });

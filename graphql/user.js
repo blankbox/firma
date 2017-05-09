@@ -2,7 +2,7 @@ const graphql = require('graphql')
 
 const GraphQLObjectType = graphql.GraphQLObjectType
 const GraphQLInt = graphql.GraphQLInt
-const GraphQLBoolean = graphql.GraphQLBoolean
+const GraphQLBoolean = graphql.GraphQLBooleanv
 const GraphQLString = graphql.GraphQLString
 const GraphQLList = graphql.GraphQLList
 const GraphQLNonNull = graphql.GraphQLNonNull
@@ -10,12 +10,12 @@ const GraphQLSchema = graphql.GraphQLSchema
 
 let TODOs = [];
 
-const TodoType = new GraphQLObjectType({
-  name: 'todo',
+const UserType = new GraphQLObjectType({
+  name: 'user',
   fields: () => ({
     id: {
       type: GraphQLInt,
-      description: 'Todo id'
+      description: 'User UUID'
     },
     title: {
       type: GraphQLString,
@@ -50,7 +50,7 @@ const MutationAdd = {
     }
   },
   resolve: (root, args) => {
-    const id = TODOs.length;
+    var id = TODOs.length;
     TODOs.push({
       id: id,
       title: args.title,
@@ -91,7 +91,7 @@ const MutationDestroy = {
   }
 };
 
-const MutationToggleAll = {
+var MutationToggleAll = {
   type: new GraphQLList(TodoType),
   description: 'Toggle all todos',
   args: {
@@ -106,7 +106,7 @@ const MutationToggleAll = {
   }
 };
 
-const MutationClearCompleted = {
+var MutationClearCompleted = {
   type: new GraphQLList(TodoType),
   description: 'Clear completed',
   resolve: () => {
@@ -114,7 +114,7 @@ const MutationClearCompleted = {
   }
 };
 
-const MutationSave = {
+var MutationSave = {
   type: new GraphQLList(TodoType),
   description: 'Edit a todo',
   args: {
@@ -135,7 +135,7 @@ const MutationSave = {
   }
 }
 
-const MutationType = new GraphQLObjectType({
+var MutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
     add: MutationAdd,

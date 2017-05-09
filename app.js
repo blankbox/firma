@@ -1,23 +1,33 @@
 require('dotenv-safe').load();
 
-var express = require('express');
-var logger = require('morgan');
-var {graphql} = require('graphql')
-var bodyParser = require('body-parser');
+const express = require('express');
+const logger = require('morgan');
+const {graphql} = require('graphql')
+const bodyParser = require('body-parser');
 
-var schema = require ('./graphql/testSchema');
+const schema = require ('./graphql/testSchema');
 
-var app = express();
+let app = express();
 
 app.use(logger('dev'));
+
+//TODO: API Key checked
+
+//TODO: User key check??? <- do this in graphql?? (Needs to be optional)
 
 // Get the body for the application/graphql mime-tyepe
 app.use(bodyParser.text(
   { type: 'application/graphql' }
 ));
 
-app.post('/graphql', function (req, res, next){
-  graphql(schema, req.body).then(function(result){
+app.use ( (req, res, next) => {
+  console.log(req.hostname)
+  console.log(req.socket.remoteAddress);
+  next();
+});
+
+app.post('/graphql', (req, res) => {
+  graphql(schema, req.body).then(result => {
     req.result = result;
     res.send(req.result);
   });
@@ -26,13 +36,13 @@ app.post('/graphql', function (req, res, next){
 
 // TODO:Basic error handling - needs work
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
 // TODO:Basic error handling - needs work
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   // send the  page
   res.status(err.status || 500);
   res.send(err.message || 'err');
