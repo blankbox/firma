@@ -1,38 +1,56 @@
 require('dotenv-safe').load();
 
-var express = require('express');
-var logger = require('morgan');
-var {graphql} = require('graphql')
-var bodyParser = require('body-parser');
+const express = require('express');
+const logger = require('morgan');
+const {graphql} = require('graphql')
+const bodyParser = require('body-parser');
+const schema = require ('./graphql/rootSchema');
 
-var schema = require ('./graphql/testSchema');
 
-var app = express();
+let app = express();
 
 app.use(logger('dev'));
 
-// Get the body for the application/graphql mime-tyepe
+// TODO: User key check - pass to graphql as 'root' in resolve
+app.use( (req, res, next) => {
+  req.jwt = {id:'dummy JWT'}
+  next()
+});
+
+// Get the body for the application/graphql mime-type
 app.use(bodyParser.text(
   { type: 'application/graphql' }
 ));
 
-app.post('/graphql', function (req, res, next){
-  graphql(schema, req.body).then(function(result){
+
+
+app.post('/graphql', (req, res) => {
+
+  graphql(schema, req.body,  req.jwt).then(result => {
     req.result = result;
-    res.send(req.result);
+    //TODO extend this to handle errors based on the schema
+    // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Error
+    if (req.result.errors){
+      //Don't expose graphql errors to clients - add error handler
+      console.log(req.result.errors); //TODO add proper logging
+      res.status(400).send('An error happened');
+    } else {
+      res.send(req.result);
+    }
   });
 });
 
 
-// TODO:Basic error handling - needs work
+
+// TODO:Basic http error handling - needs work
 app.use(function(req, res, next) {
-  var err = new Error('Not Found');
+  let err = new Error('Not Found');
   err.status = 404;
   next(err);
 });
 
 // TODO:Basic error handling - needs work
-app.use(function(err, req, res, next) {
+app.use(function(err, req, res) {
   // send the  page
   res.status(err.status || 500);
   res.send(err.message || 'err');
