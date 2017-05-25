@@ -6,39 +6,10 @@ const GraphQLBoolean = graphql.GraphQLBoolean
 const GraphQLString = graphql.GraphQLString
 const GraphQLList = graphql.GraphQLList
 const GraphQLNonNull = graphql.GraphQLNonNull
-const GraphQLSchema = graphql.GraphQLSchema
 
-let TODOs = [];
+const TodoType = require ('./schema');
+let TODOs = require ('./store');
 
-const TodoType = new GraphQLObjectType({
-  name: 'todo',
-  fields: () => ({
-    id: {
-      type: GraphQLInt,
-      description: 'Todo id'
-    },
-    title: {
-      type: GraphQLString,
-      description: 'Task title'
-    },
-    completed: {
-      type: GraphQLBoolean,
-      description: 'Flag to mark if the task is completed'
-    }
-  })
-});
-
-const QueryType = new GraphQLObjectType({
-  name: 'Query',
-  fields: () => ({
-    todos: {
-      type: new GraphQLList(TodoType),
-      resolve: (root, args) => {
-        return TODOs
-      }
-    }
-  })
-});
 
 const MutationAdd = {
   type: new GraphQLList(TodoType),
@@ -135,19 +106,15 @@ const MutationSave = {
   }
 }
 
-const MutationType = new GraphQLObjectType({
-  name: 'Mutation',
-  fields: {
-    add: MutationAdd,
-    toggle: MutationToggle,
-    toggleAll: MutationToggleAll,
-    destroy: MutationDestroy,
-    clearCompleted: MutationClearCompleted,
-    save: MutationSave
-  }
-});
+const MutationType = {
+  add: MutationAdd,
+  toggle: MutationToggle,
+  toggleAll: MutationToggleAll,
+  destroy: MutationDestroy,
+  clearCompleted: MutationClearCompleted,
+  save: MutationSave
+};
 
-module.exports = new GraphQLSchema({
-  query: QueryType,
-  mutation: MutationType
-});
+
+
+module.exports = MutationType;

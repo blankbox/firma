@@ -14,70 +14,49 @@ let requestContent = {
   body: ''
 };
 
+describe ('Todos', () => {
+  describe('Add todo:', () => {
 
-describe('Add todo:', () => {
+    let response;
+    before (done => {
+      requestContent.body = 'mutation {add (title:"Say hello world") { title }}';
+      request(requestContent, (error, res) => {
+        if (!error) {
+          response = res;
+          done();
+        }
+      });
+    });
 
-  let response;
-  before (done => {
-    requestContent.body = 'mutation {add (title:"Say hello world") { title }}';
-    request(requestContent, (error, res) => {
-      if (!error) {
-        response = res;
-        done();
-      }
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
+
+    it('returns \'Say hello world\'', () => {
+      assert.equal('Say hello world', JSON.parse(response.body).data.add.pop().title);
     });
   });
 
-  it('returns 200', () => {
-    assert.equal(200, response.statusCode);
-  });
+  describe('Get todos:', () => {
 
-  it('returns \'Say hello world\'', () => {
-    assert.equal('Say hello world', JSON.parse(response.body).data.add.pop().title);
-  });
-});
+    let response;
+    before (done => {
+      requestContent.body = 'query {todos { title, id }}';
+      request(requestContent, (error, res) => {
+        if (!error) {
+          response = res;
+          done();
+        }
+      });
+    });
 
-describe('Get todos:', () => {
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
 
-  let response;
-  before (done => {
-    requestContent.body = 'query {todos { title, id }}';
-    request(requestContent, (error, res) => {
-      if (!error) {
-        response = res;
-        done();
-      }
+    it('returns an array of todos', () => {
+      assert.equal('[object Array]', Object.prototype.toString.apply(JSON.parse(response.body).data.todos));
     });
   });
 
-  it('returns 200', () => {
-    assert.equal(200, response.statusCode);
-  });
-
-  it('returns an array of todos', () => {
-    assert.equal('[object Array]', Object.prototype.toString.apply(JSON.parse(response.body).data.todos));
-  });
-});
-
-describe('Get schema:', () => {
-
-  let response;
-  before (done => {
-    requestContent.body = '{__schema { mutationType {fields {name}}}}';
-    request(requestContent, (error, res) => {
-    if (!error) {
-        response = res;
-        done();
-      }
-    });
-  });
-
-  it('returns 200', () => {
-    assert.equal(200, response.statusCode);
-  });
-
-  it('returns a schema', () => {
-    let keys = Object.keys(JSON.parse(response.body).data);
-    assert.equal('__schema', keys[0]);
-  });
 });

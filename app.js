@@ -4,37 +4,45 @@ const express = require('express');
 const logger = require('morgan');
 const {graphql} = require('graphql')
 const bodyParser = require('body-parser');
+const schema = require ('./graphql/rootSchema');
 
-const schema = require ('./graphql/testSchema');
 
 let app = express();
 
 app.use(logger('dev'));
 
-//TODO: API Key checked
+// TODO: User key check - pass to graphql as 'root' in resolve
+app.use( (req, res, next) => {
+  req.jwt = {id:'dummy JWT'}
+  next()
+});
 
-//TODO: User key check??? <- do this in graphql?? (Needs to be optional)
-
-// Get the body for the application/graphql mime-tyepe
+// Get the body for the application/graphql mime-type
 app.use(bodyParser.text(
   { type: 'application/graphql' }
 ));
 
-app.use ( (req, res, next) => {
-  console.log(req.hostname)
-  console.log(req.socket.remoteAddress);
-  next();
-});
+
 
 app.post('/graphql', (req, res) => {
-  graphql(schema, req.body).then(result => {
+
+  graphql(schema, req.body,  req.jwt).then(result => {
     req.result = result;
-    res.send(req.result);
+    //TODO extend this to handle errors based on the schema
+    // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Error
+    if (req.result.errors){
+      //Don't expose graphql errors to clients - add error handler
+      console.log(req.result.errors); //TODO add proper logging
+      res.status(400).send('An error happened');
+    } else {
+      res.send(req.result);
+    }
   });
 });
 
 
-// TODO:Basic error handling - needs work
+
+// TODO:Basic http error handling - needs work
 app.use(function(req, res, next) {
   let err = new Error('Not Found');
   err.status = 404;
