@@ -11,7 +11,7 @@ module.exports = (config) => {
     req.user = {};
 
     //Convenience method to check verification in business logic
-    req.user.mustBeVerified = (value) => {
+    req.user.mustBeVerified = function (value) {
       if (this.verified !== value){
         let err = this.error;
         throw new PublicError (err.name, err.message, err.status);

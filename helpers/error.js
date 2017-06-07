@@ -32,6 +32,8 @@ const errorHandler = (errorArray) => {
     status = 400;
   }
 
+  if (!status) {status = 500}
+  if (!message) {message = 'Unknown error'}
 
   return {status: status, message:message};
 };

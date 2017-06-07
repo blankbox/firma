@@ -6,7 +6,6 @@ const {graphql} = require('graphql')
 const bodyParser = require('body-parser');
 const schema = require ('./graphql/rootSchema');
 const autho = require ('./helpers/jwt');
-const userStore = require ('./graphql/user/store');
 const errorHandler = require ('./helpers/error')
 let app = express();
 
@@ -14,7 +13,6 @@ app.use(logger('dev'));
 
 let authConfig = {
   jwtSecret:'boo',
-  userStore: userStore,
   error: errorHandler,
   //TODO move blacklist handlers to more sensible place
   userBlacklist: () => {
