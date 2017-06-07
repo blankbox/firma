@@ -24,6 +24,7 @@ describe ('Graphql', () => {
       request(requestContent, (error, res) => {
         if (!error) {
           response = res;
+          console.log(res.body);
           done();
         }
       });

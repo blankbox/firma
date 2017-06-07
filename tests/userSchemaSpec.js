@@ -9,7 +9,8 @@ let requestContent = {
   method: 'POST',
   uri: url,
   headers: {
-    'Content-Type':'application/graphql'
+    'Content-Type':'application/graphql',
+    'user_token':'foo'
   },
   body: ''
 };
@@ -31,6 +32,7 @@ describe ('Users', () => {
       }`;
       request(requestContent, (error, res) => {
         if (!error) {
+          console.log(res.body);
           response = res;
           done();
         }
@@ -53,6 +55,7 @@ describe ('Users', () => {
       requestContent.body = 'query {user { user_uid }}';
       request(requestContent, (error, res) => {
         if (!error) {
+          console.log(res.body);
           response = res;
           done();
         }
