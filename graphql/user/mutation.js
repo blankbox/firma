@@ -13,7 +13,7 @@ let users = require ('./store');
 
 
 
-const MutationAdd = {
+const add = {
   type: new GraphQLList(UserType),
   description: 'Add a user',
   args: {
@@ -50,5 +50,5 @@ const MutationAdd = {
 };
 
 module.exports = {
-  addUser: MutationAdd
+  addUser: add
 };

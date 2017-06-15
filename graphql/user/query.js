@@ -9,7 +9,6 @@ const GraphQLNonNull = graphql.GraphQLNonNull;
 
 const UserType = require ('./schema');
 
-
 let users = require ('./store');
 module.exports = {
   user: {
@@ -22,10 +21,10 @@ module.exports = {
       }
     },
     resolve: (root, args) => {
+      root.user.mustBeVerified(true);
       if (!isNaN(args.user_uid)) {
         return [users[args.user_uid]]
       } else {
-
         return users;
       }
     }

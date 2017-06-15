@@ -47,6 +47,12 @@ module.exports = (config) => {
           };
           return next();
         } else {
+          req.user.error = {
+            name: 'UserError',
+            status: 403,
+            message: 'You are logged in'
+          };
+          //TODO replace token if due to expire, send in header
           req.user.payload = decoded;
           req.user.verified = true;
           return next();
