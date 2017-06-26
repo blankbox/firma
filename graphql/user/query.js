@@ -9,24 +9,50 @@ const GraphQLNonNull = graphql.GraphQLNonNull;
 
 const UserType = require ('./schema');
 
-let users = require ('./store');
-module.exports = {
-  user: {
-    type: new GraphQLList(UserType),
-    description:'Get user data',
-    args:{
-      user_uid: {
-        type: GraphQLInt,
-        description: 'User UUID'
-      }
-    },
-    resolve: (root, args) => {
-      root.user.mustBeVerified(true);
-      if (!isNaN(args.user_uid)) {
-        return [users[args.user_uid]]
-      } else {
-        return users;
+module.exports = (db) => {
+  return {
+    queryUser: {
+      type: new GraphQLList(UserType),
+      description:'Get user data',
+      args:{
+        email: {
+          type: GraphQLString,
+          description: 'Email'
+        }
+      },
+      resolve: (root, args) => {
+        return new Promise ((resolve, reject) =>{
+          root.user.mustBeVerified(true);
+
+          if (args.email) {
+            db.cassandra.instance.User.findOne({email:args.email}, {materialized_view: 'user_by_email'},(err, user) => {
+              if (err) {
+                //handle error
+              } else {
+                if (user){
+                  resolve( [{email:user.email}]);
+                } else {
+                  reject(new Error('test'));
+                }
+              }
+            });
+          } else {
+            db.cassandra.instance.User.find({}, (err, users) => {
+              if (err) {
+                //handle error
+              } else {
+                let u = users[0];
+                console.log(u.email);
+                resolve([ {
+                  user_uid: u.user_uid,
+                  email: u.email
+                }])
+              }
+            });
+          }
+        })
+
       }
     }
-  }
-};
+  };
+}

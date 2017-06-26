@@ -11,7 +11,7 @@ const UserType = new GraphQLObjectType({
   name: 'user',
   fields: () => ({
     user_uid: {
-      type: GraphQLInt,
+      type: GraphQLString,
       description: 'User UUID'
     },
     email: {
@@ -33,7 +33,11 @@ const UserType = new GraphQLObjectType({
     blocked: {
       type: GraphQLBoolean,
       description: 'Flag to mark if the user is blocked'
-    }
+    },
+    user_token: {
+      type: GraphQLString,
+      description: 'JWT'
+    },
   })
 });
 

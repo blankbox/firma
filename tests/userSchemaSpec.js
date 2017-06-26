@@ -15,21 +15,25 @@ let requestContent = {
   body: ''
 };
 
+let data;
+let pass = 'test123';
 
 describe ('Users', () => {
-  describe('Add user:', () => {
+  describe('Create user:', () => {
 
     let response;
     before (done => {
       requestContent.body = `
-      mutation {
-        addUser (
-          email:"test@too.bar",
-          password:"test"
-        ) {
-          email
-        }
-      }`;
+        mutation {
+          createUser (
+            email:"test@goo.bar",
+            password:"` + pass + `"
+          ) {
+            email,
+            user_uid,
+            password
+          }
+        }`;
       request(requestContent, (error, res) => {
         if (!error) {
           console.log(res.body);
@@ -44,15 +48,53 @@ describe ('Users', () => {
     });
 
     it('returns email ', () => {
-      assert.equal('test@too.bar', JSON.parse(response.body).data.addUser.pop().email);
+      data =  JSON.parse(response.body).data.createUser.pop();
+      assert.equal('test@goo.bar', data.email);
     });
   });
 
-  describe('Get users:', () => {
+  describe('Login user:', () => {
 
     let response;
     before (done => {
-      requestContent.body = 'query {user { user_uid }}';
+      requestContent.body = `
+        mutation {
+          login (
+            email:"test@goo.bar",
+            password:"` + pass + `"
+          ) {
+            email,
+            user_uid,
+            user_token
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body);
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
+
+    it('returns email ', () => {
+      data =  JSON.parse(response.body).data.createUser.pop();
+      assert.equal('test@goo.bar', data.email);
+    });
+  });
+
+
+
+
+  xdescribe('Get all users:', () => {
+
+    let response;
+    before (done => {
+      requestContent.body = 'query {queryUser { user_uid }}';
       request(requestContent, (error, res) => {
         if (!error) {
           console.log(res.body);
@@ -71,11 +113,45 @@ describe ('Users', () => {
     });
   });
 
-  describe('Get user 0:', () => {
+
+  describe('Delete user:', () => {
 
     let response;
     before (done => {
-      requestContent.body = 'query {user(user_uid:0) { email }}';
+      requestContent.body = `
+        mutation {
+          deleteUser (
+            user_uid:"` + data.user_uid + `"
+          ) {
+            email
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body);
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
+
+    it('returns email ', () => {
+      assert.equal(data.email, JSON.parse(response.body).data.deleteUser.pop().email);
+    });
+  });
+
+
+
+
+  xdescribe('Get user 0:', () => {
+
+    let response;
+    before (done => {
+      requestContent.body = 'query {user(queryUser:0) { email }}';
       request(requestContent, (error, res) => {
         if (!error) {
           response = res;

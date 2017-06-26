@@ -25,3 +25,11 @@ With the server Running
 ```
 npm test
 ```
+
+## Development DBs
+
+docker pull bitnami/cassandra
+docker pull bitnami/redis
+
+docker restart cassandra
+docker restart redis

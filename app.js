@@ -4,26 +4,49 @@ const express = require('express');
 const logger = require('morgan');
 const {graphql} = require('graphql')
 const bodyParser = require('body-parser');
-const schema = require ('./graphql/rootSchema');
 const autho = require ('./helpers/jwt');
-const errorHandler = require ('./helpers/error')
+const errorHandler = require ('./helpers/error');
+
+const dbConf = {
+  cassPoints: ['172.17.0.2'],
+  cassUser: 'cassandra',
+  cassPass:'cassandra',
+  cassPort:9042,
+  cassKeyspace:'firma',
+  redisHost:'172.17.0.3',
+  redisPort:6379,
+  redisPass:'thisIsAReallySillyPassword'
+};
+
+const db = require ('./helpers/dbSetup')(dbConf);
+
+const routes = ['user'];
+
 let app = express();
+const schema = require ('./graphql/rootSchema')(routes, db, errorHandler);
 
 app.use(logger('dev'));
 
 let authConfig = {
   jwtSecret:'boo',
   error: errorHandler,
+  cassandra: db.cassandra,
   //TODO move blacklist handlers to more sensible place
   userBlacklist: () => {
     return {
       addTokens: (tokens) => {
-        //add an array of tokens to black list
-        // tokens = []
+        for (let token of tokens) {
+          //TODO set EX on JWT expire
+          db.redis.set(token, null, 'EX', 20);
+
+        }
       },
-      checkToken: (token) => {
-        //return true if blacklisted
-        return false;
+      containsToken: (token) => {
+        if (db.redis.exists(token)){
+          return true;
+        } else {
+          return false;
+        }
       }
     }
   }

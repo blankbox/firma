@@ -39,7 +39,7 @@ module.exports = (config) => {
         };
         return next();
       } else {
-        if (blacklist.checkToken (token)) {
+        if (blacklist.containsToken (token)) {
           req.user.error = {
             name: 'UserError',
             status: 403,
