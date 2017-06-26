@@ -60,7 +60,7 @@ describe ('Users', () => {
       requestContent.body = `
         mutation {
           login (
-            email:"test@goo.bar",
+            email:"` + data.email + `",
             password:"` + pass + `"
           ) {
             email,
@@ -82,12 +82,46 @@ describe ('Users', () => {
     });
 
     it('returns email ', () => {
-      data =  JSON.parse(response.body).data.createUser.pop();
-      assert.equal('test@goo.bar', data.email);
+      let d =  JSON.parse(response.body).data.login.pop();
+      assert.equal(d.email, data.email);
+      data.user_token = d.user_token;
     });
   });
 
 
+  describe('Select a user:', () => {
+
+    let response;
+    before (done => {
+      requestContent.headers['user_token'] = data.user_token;
+      requestContent.body = `
+        query {
+          queryUser (
+            email:"test@goo.bar"
+          ) {
+            email,
+            user_uid,
+            user_token
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body)
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
+
+    it('returns email ', () => {
+      let d =  JSON.parse(response.body).data.queryUser.pop();
+      assert.equal(data.email, d.email);
+    });
+  });
 
 
   xdescribe('Get all users:', () => {
@@ -143,7 +177,6 @@ describe ('Users', () => {
       assert.equal(data.email, JSON.parse(response.body).data.deleteUser.pop().email);
     });
   });
-
 
 
 

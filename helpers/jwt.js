@@ -20,7 +20,7 @@ module.exports = (config) => {
 
     req.user.verified = false;
 
-    let token = req.header.user_token;
+    let token = req.headers.user_token;
     if (!token) {
       req.user.error = {
         name: 'UserError',

@@ -8,24 +8,29 @@ const autho = require ('./helpers/jwt');
 const errorHandler = require ('./helpers/error');
 
 const dbConf = {
-  cassPoints: ['172.17.0.2'],
-  cassUser: 'cassandra',
-  cassPass:'cassandra',
-  cassPort:9042,
+  cassPoints: [process.env.CASSPOINTS],
+  cassUser: process.env.CASSUSER,
+  cassPass:process.env.CASSPASS,
+  cassPort:process.env.CASSPORT,
   cassKeyspace:'firma',
-  redisHost:'172.17.0.3',
-  redisPort:6379,
-  redisPass:'thisIsAReallySillyPassword'
+  redisHost:process.env.REDISPOINTS,
+  redisPort:process.env.REDISPORT,
+  redisPass:process.env.REDISPASS
 };
 
 const db = require ('./helpers/dbSetup')(dbConf);
 
 const routes = ['user'];
 
-let app = express();
-const schema = require ('./graphql/rootSchema')(routes, db, errorHandler);
+const loadModels = (routes, db) => {
+  for (let r of routes) {
+    require('./graphql/' + r + '/model')(db.cassandra);
+  }
+}
 
-app.use(logger('dev'));
+loadModels(routes, db);
+
+const schema = require ('./graphql/rootSchema')(routes);
 
 let authConfig = {
   jwtSecret:'boo',
@@ -42,17 +47,27 @@ let authConfig = {
         }
       },
       containsToken: (token) => {
-        if (db.redis.exists(token)){
-          return true;
-        } else {
-          return false;
-        }
+        db.redis.exists(token, (err, res) => {
+          return res;
+        });
+
       }
     }
   }
 };
 
 const authoConf = autho(authConfig);
+
+let app = express();
+
+app.use(logger('dev'));
+
+app.use ((req, res, next) => {
+  req.db = db;
+  req.errorHandler = errorHandler;
+  //TODO check DBs are connected - if not connect
+  next();
+})
 
 app.use(authoConf);
 
@@ -62,7 +77,6 @@ app.use(bodyParser.text(
 ));
 
 app.post('/graphql', (req, res) => {
-
   graphql(schema, req.body,  req).then(result => {
     req.result = result;
     if (req.result.errors){

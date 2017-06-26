@@ -4,26 +4,25 @@ const graphql = require('graphql');
 const GraphQLObjectType = graphql.GraphQLObjectType;
 const GraphQLSchema = graphql.GraphQLSchema;
 
-module.exports = (routes, db, errorHandler) => {
+module.exports = (routes) => {
 
-  require('./user/model')(db.cassandra);
+  let queryObject  = {};
+  let mutationObject = {};
 
-
+  for (let r of routes) {
+    Object.assign(queryObject, require('./' + r + '/query'));
+    Object.assign(mutationObject, require('./' + r + '/mutation'));
+  }
 
   const query = new GraphQLObjectType({
     name: 'RootQuery',
-    fields: () => Object.assign({},
-      require('./user/query')(db, errorHandler)
-    )
+    fields: () => queryObject
   });
-
 
   const mutation =  new GraphQLObjectType({
     name: 'RootMutation',
-    fields: () => Object.assign({},
-      require('./user/mutation')(db, errorHandler)
-    )
+    fields: () => mutationObject
   });
 
-    return new GraphQLSchema({query, mutation});
+  return new GraphQLSchema({query, mutation});
 }

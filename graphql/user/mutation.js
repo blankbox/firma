@@ -9,15 +9,11 @@ const GraphQLBoolean = graphql.GraphQLBoolean;
 const GraphQLString = graphql.GraphQLString;
 const GraphQLList = graphql.GraphQLList;
 const GraphQLNonNull = graphql.GraphQLNonNull;
+const jwt = require('jsonwebtoken');
 
 const UserType = require ('./schema');
 
-module.exports = (db, errorHandler) => {
-
-  const PublicError = errorHandler.PublicError;
-  const PrivateError = errorHandler.PrivateError;
-
-  return {
+module.exports = {
     createUser:{
       type: new GraphQLList(UserType),
       description: 'Add a user',
@@ -40,6 +36,9 @@ module.exports = (db, errorHandler) => {
         }
       },
       resolve: (root, args) => {
+        const db = root.db;
+        const PublicError = root.errorHandler.PublicError;
+        const PrivateError = root.errorHandler.PrivateError;
         return new Promise ((resolve, reject) => {
         //Check we don't have this email already
           db.cassandra.instance.User.findOne(
@@ -105,6 +104,9 @@ module.exports = (db, errorHandler) => {
         }
       },
       resolve: (root, args) => {
+        const db = root.db;
+        const PublicError = root.errorHandler.PublicError;
+        const PrivateError = root.errorHandler.PrivateError;
         return new Promise ((resolve, reject) => {
           db.cassandra.instance.User.findOne(
             {email: args.email},
@@ -119,8 +121,10 @@ module.exports = (db, errorHandler) => {
                     reject(new PublicError('UserError', 'User or password error', 403));
                   } else {
                     //TODO Make JWT
-                    user.user_token = 'not a JWT';
-                    resolve([user]);
+                    jwt.sign({ foo: 'bar' }, 'boo' ,{ expiresIn: '90d' }, function(err, token) {
+                      user.user_token = token;
+                      resolve([user]);
+                    });
                   }
                 });
               } else {
@@ -143,6 +147,10 @@ module.exports = (db, errorHandler) => {
         }
       },
       resolve: (root, args) => {
+        const db = root.db;
+        const PublicError = root.errorHandler.PublicError;
+        const PrivateError = root.errorHandler.PrivateError;
+
         return new Promise ((resolve, reject) => {
           db.cassandra.instance.User.findOne(
             {user_uid: Uuid.fromString(args.user_uid)}, (err, user) => {
@@ -162,6 +170,6 @@ module.exports = (db, errorHandler) => {
     },
     // newPasswordUser:{},
     // recoverUserPassword:{}
-  }
+
 
 }
