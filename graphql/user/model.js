@@ -1,4 +1,24 @@
 
+//TODO add second schema for user->token table_name
+
+// models.loadSchema('Tokens', {
+//   fields:{
+//     user_uid: {"type": "uuid"},
+//     token: "text",
+//     blacklist: {"type":"boolean", "default":false}
+//   },
+//   key:["token"],
+//   materialized_views: {
+//     token_by_user_uid: {
+//       select: ["*"],
+//       key : ["user_uid", "token"],
+//     }
+//   },
+//  table_name: "token",
+//  indexes: ["blacklist"]
+// });
+
+
 module.exports = (models) => {
   return  models.loadSchema('User', {
     fields:{

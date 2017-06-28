@@ -26,7 +26,7 @@ describe ('Users', () => {
       requestContent.body = `
         mutation {
           createUser (
-            email:"test@goo.bar",
+            email:"test@foo.bar",
             password:"` + pass + `"
           ) {
             email,
@@ -123,6 +123,41 @@ describe ('Users', () => {
     });
   });
 
+  describe('Update user:', () => {
+
+    let response;
+    before (done => {
+      requestContent.body = `
+        mutation {
+          updateUser (
+            email:"` + 'foo.email.test' + `",
+            first_name: "Bob",
+            last_name: "Test"
+          ) {
+            email,
+            first_name,
+            last_name,
+            user_uid
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body);
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 200', () => {
+      assert.equal(200, response.statusCode);
+    });
+
+    it('returns email ', () => {
+      assert.equal(data.email, JSON.parse(response.body).data.updateUser.pop().email);
+    });
+  });
+
 
   xdescribe('Get all users:', () => {
 
@@ -148,7 +183,7 @@ describe ('Users', () => {
   });
 
 
-  describe('Delete user:', () => {
+  xdescribe('Delete user:', () => {
 
     let response;
     before (done => {

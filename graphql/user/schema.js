@@ -22,6 +22,10 @@ const UserType = new GraphQLObjectType({
       type: GraphQLString,
       description: 'Password'
     },
+    new_password: {
+      type: GraphQLString,
+      description: 'new password - used for password change'
+    },
     first_name: {
       type: GraphQLString,
       description: 'First name'
