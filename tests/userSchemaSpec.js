@@ -9,16 +9,16 @@ let requestContent = {
   method: 'POST',
   uri: url,
   headers: {
-    'Content-Type':'application/graphql',
-    'user_token':'foo'
+    'Content-Type':'application/graphql'
   },
   body: ''
 };
 
 let data;
 let pass = 'test123';
-
+let email = 'test@foo.bar';
 describe ('Users', () => {
+
   describe('Create user:', () => {
 
     let response;
@@ -26,7 +26,7 @@ describe ('Users', () => {
       requestContent.body = `
         mutation {
           createUser (
-            email:"test@foo.bar",
+            email:"` + email + `",
             password:"` + pass + `"
           ) {
             email,
@@ -49,7 +49,7 @@ describe ('Users', () => {
 
     it('returns email ', () => {
       data =  JSON.parse(response.body).data.createUser.pop();
-      assert.equal('test@goo.bar', data.email);
+      assert.equal(email , data.email);
     });
   });
 
@@ -97,7 +97,7 @@ describe ('Users', () => {
       requestContent.body = `
         query {
           queryUser (
-            email:"test@goo.bar"
+            email:"` + data.email + `"
           ) {
             email,
             user_uid,
@@ -124,20 +124,24 @@ describe ('Users', () => {
   });
 
   describe('Update user:', () => {
-
+    let newEmail = 'foo@new.test';
     let response;
     before (done => {
+      requestContent.headers['user_token'] = data.user_token;
       requestContent.body = `
         mutation {
           updateUser (
-            email:"` + 'foo.email.test' + `",
+            email:"` + newEmail + `",
             first_name: "Bob",
-            last_name: "Test"
+            last_name: "Test",
+            password: "` + pass + `",
+            new_password: "newP"
           ) {
             email,
             first_name,
             last_name,
-            user_uid
+            user_uid,
+            blocked
           }
         }`;
       request(requestContent, (error, res) => {
@@ -153,8 +157,9 @@ describe ('Users', () => {
       assert.equal(200, response.statusCode);
     });
 
-    it('returns email ', () => {
-      assert.equal(data.email, JSON.parse(response.body).data.updateUser.pop().email);
+    it('returns new email ', () => {
+      data = JSON.parse(response.body).data.updateUser.pop();
+      assert.equal(newEmail, data.email);
     });
   });
 
@@ -183,10 +188,11 @@ describe ('Users', () => {
   });
 
 
-  xdescribe('Delete user:', () => {
+  describe('Delete user:', () => {
 
     let response;
     before (done => {
+      requestContent.headers['user_token'] = data.user_token;
       requestContent.body = `
         mutation {
           deleteUser (
@@ -210,30 +216,6 @@ describe ('Users', () => {
 
     it('returns email ', () => {
       assert.equal(data.email, JSON.parse(response.body).data.deleteUser.pop().email);
-    });
-  });
-
-
-
-  xdescribe('Get user 0:', () => {
-
-    let response;
-    before (done => {
-      requestContent.body = 'query {user(queryUser:0) { email }}';
-      request(requestContent, (error, res) => {
-        if (!error) {
-          response = res;
-          done();
-        }
-      });
-    });
-
-    it('returns 200', () => {
-      assert.equal(200, response.statusCode);
-    });
-
-    it('returns a single user', () => {
-      assert.equal(1, JSON.parse(response.body).data.user.length);
     });
   });
 
