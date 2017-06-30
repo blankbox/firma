@@ -31,5 +31,8 @@ npm test
 docker pull bitnami/cassandra
 docker pull bitnami/redis
 
-docker restart cassandra
-docker restart redis
+docker start cassandra
+docker start redis
+
+Running bash in docker cassadra container - can run cqlsh / rediscli
+docker exec -i -t cassandra /bin/bash
