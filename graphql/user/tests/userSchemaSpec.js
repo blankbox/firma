@@ -17,6 +17,8 @@ let requestContent = {
 let data;
 let pass = 'test123';
 let email = 'test@foo.bar';
+let newEmail = 'foo@new.test';
+
 describe ('Users', () => {
 
   describe('Create user:', () => {
@@ -124,7 +126,6 @@ describe ('Users', () => {
   });
 
   describe('Update user:', () => {
-    let newEmail = 'foo@new.test';
     let response;
     before (done => {
       requestContent.headers['user_token'] = data.user_token;
@@ -158,8 +159,8 @@ describe ('Users', () => {
     });
 
     it('returns new email ', () => {
-      data = JSON.parse(response.body).data.updateUser.pop();
-      assert.equal(newEmail, data.email);
+      let d = JSON.parse(response.body).data.updateUser.pop();
+      assert.equal(newEmail, d.email);
     });
   });
 
@@ -201,6 +202,7 @@ describe ('Users', () => {
             email
           }
         }`;
+        console.log(requestContent);
       request(requestContent, (error, res) => {
         if (!error) {
           console.log(res.body);
@@ -215,7 +217,8 @@ describe ('Users', () => {
     });
 
     it('returns email ', () => {
-      assert.equal(data.email, JSON.parse(response.body).data.deleteUser.pop().email);
+      let d = JSON.parse(response.body).data.deleteUser.pop();
+      assert.equal(newEmail, d.email);
     });
   });
 

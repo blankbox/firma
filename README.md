@@ -13,7 +13,7 @@ Clone the sample and fill in your preferred values
 cp .env.example .env
 nano .env
 ```
-Do not add .env to source control, and if you add additonal variables make sure they are listed in the example.
+Do not add .env to source control, and if you add additional variables make sure they are listed in the example.
 
 ## Running the server.
 ```
