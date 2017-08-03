@@ -1,100 +1,75 @@
-require('dotenv-safe').load();
-
 const express = require('express');
 const logger = require('morgan');
-const {graphql} = require('graphql')
+const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
-const autho = require ('./helpers/jwt');
-const errorHandler = require ('./helpers/error');
+const cognito = require ('./lib/cognito');
+const errorHandler = require ('./lib/error');
 
-const dbConf = {
-  cassPoints: [process.env.CASSPOINTS],
-  cassUser: process.env.CASSUSER,
-  cassPass:process.env.CASSPASS,
-  cassPort:process.env.CASSPORT,
-  cassKeyspace:'firma',
-  redisHost:process.env.REDISPOINTS,
-  redisPort:process.env.REDISPORT,
-  redisPass:process.env.REDISPASS
-};
+module.exports = (config) => {
 
-const db = require ('./helpers/dbSetup')(dbConf);
+  const db = require ('./lib/dbSetup')(config.database);
 
-const routes = ['user'];
+  const routes = config.routes.routes;
 
-const loadModels = (routes, db) => {
-  for (let r of routes) {
-    require('./graphql/' + r + '/model')(db.cassandra);
+  const loadModels = (routes, db) => {
+    for (let r of routes) {
+      require(config.routes.rootDirectory + r + '/model')(db.cassandra);
+    }
   }
-}
 
-loadModels(routes, db);
+  loadModels(routes, db);
+  const schema = require ('./graphql/rootSchema')(config.routes.rootDirectory, routes);
 
-const schema = require ('./graphql/rootSchema')(routes);
+  let authConfig = {
+    jwtCert:config.cognito.publicKey,
+    identityPoolId: config.cognito.awsRegion + ':' +  config.cognito.identityPoolUuid,
+    error: errorHandler,
+    cassandra: db.cassandra,
+    userBlacklist: require ('./lib/blacklist')(db)
+  };
 
-let authConfig = {
-  jwtSecret:'boo',
-  error: errorHandler,
-  cassandra: db.cassandra,
-  //TODO move blacklist handlers to more sensible place
-  userBlacklist: () => {
-    return {
-      addTokens: (tokens) => {
-        for (let token of tokens) {
-          //TODO set EX on JWT expire
-          db.redis.set(token, null, 'EX', 20);
+  const authenticate = cognito(authConfig);
 
-        }
-      },
-      containsToken: (token) => {
-        db.redis.exists(token, (err, res) => {
-          return res;
-        });
+  let app = express();
 
+  app.use(logger('dev'));
+
+  app.use ((req, res, next) => {
+    req.db = db;
+    req.errorHandler = errorHandler;
+    //TODO check DBs are connected - if not connect
+    next();
+  })
+
+  app.use(authenticate);
+
+  // Get the body for the application/graphql mime-type
+  app.use(bodyParser.text(
+    { type: 'application/graphql' }
+  ));
+
+  app.post('/graphql', (req, res) => {
+    graphql(schema, req.body,  req).then(result => {
+      req.result = result;
+      if (req.result.errors){
+        let err = errorHandler.errorHandler(req.result.errors);
+        //TODO workout how to deal with multiple errors cleanly
+        res.status(err.status || 400).json({error:err.message});
+      } else {
+        res.send(req.result);
       }
-    }
-  }
-};
-
-const authoConf = autho(authConfig);
-
-let app = express();
-
-app.use(logger('dev'));
-
-app.use ((req, res, next) => {
-  req.db = db;
-  req.errorHandler = errorHandler;
-  //TODO check DBs are connected - if not connect
-  next();
-})
-
-app.use(authoConf);
-
-// Get the body for the application/graphql mime-type
-app.use(bodyParser.text(
-  { type: 'application/graphql' }
-));
-
-app.post('/graphql', (req, res) => {
-  graphql(schema, req.body,  req).then(result => {
-    req.result = result;
-    if (req.result.errors){
-      let err = errorHandler.errorHandler(req.result.errors);
-      //TODO workout how to deal with multiple errors cleanly
-      res.status(err.status || 400).json({error:err.message});
-    } else {
-      res.send(req.result);
-    }
+    });
   });
-});
 
-// TODO:Basic http error handling - needs work
-app.use(function(req, res, next) {
-  let err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
+  app.use(function(req, res, next) {
+    let err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+  });
 
-app.listen(process.env.PORT);
-console.log('Running a GraphQL API server at localhost:' + process.env.PORT+ '/graphql');
+  app.listen(config.server.port);
+  console.log('Running a GraphQL API server at localhost:' + process.env.PORT+ '/graphql');
+
+
+  return app
+}
