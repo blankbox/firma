@@ -6,23 +6,25 @@ const cognito = require ('./lib/cognito');
 const errorHandler = require ('./lib/error');
 
 module.exports = (config) => {
-
   const db = require ('./lib/dbSetup')(config.database);
 
   const routes = config.routes.routes;
 
   const loadModels = (routes, db) => {
     for (let r of routes) {
+      console.log(r);
       require(config.routes.rootDirectory + r + '/model')(db.cassandra);
     }
   }
 
   loadModels(routes, db);
-  const schema = require ('./graphql/rootSchema')(config.routes.rootDirectory, routes);
+  // const schema = require ('./graphql/rootSchema')(config.routes.rootDirectory, routes);
+
+  const cognitoConf = config.authentication.cognito;
 
   let authConfig = {
-    jwtCert:config.cognito.publicKey,
-    identityPoolId: config.cognito.awsRegion + ':' +  config.cognito.identityPoolUuid,
+    jwtCert:cognitoConf.publicKey,
+    identityPoolId: cognitoConf.awsRegion + ':' +  cognitoConf.identityPoolUuid,
     error: errorHandler,
     cassandra: db.cassandra,
     userBlacklist: require ('./lib/blacklist')(db)
@@ -68,7 +70,7 @@ module.exports = (config) => {
   });
 
   app.listen(config.server.port);
-  console.log('Running a GraphQL API server at localhost:' + process.env.PORT+ '/graphql');
+  console.log('Running a GraphQL API server at localhost:' + config.server.port + '/graphql');
 
 
   return app
