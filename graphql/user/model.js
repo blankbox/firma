@@ -43,7 +43,7 @@ const async = require('async');
             key : ["email", "user_uid"],
           }
         },
-        table_name: "UserProfile",
+        table_name: "user_profile",
       });
       callback(null, models)
     },
@@ -65,7 +65,7 @@ const async = require('async');
             key : ["username", "login_uid"],
           }
         },
-        table_name: "UserLocalLogin",
+        table_name: "user_local_login",
       });
       callback(null, models)
     },

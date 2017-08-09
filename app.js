@@ -6,19 +6,19 @@ const cognito = require ('./lib/cognito');
 const errorHandler = require ('./lib/error');
 
 module.exports = (config) => {
+
   const db = require ('./lib/dbSetup')(config.database);
 
-  const routes = config.routes.routes;
-
-  const loadModels = (routes, db) => {
-    for (let r of routes) {
-      console.log(r);
-      require(config.routes.rootDirectory + r + '/model')(db.cassandra);
+  config.routes.push(
+    {
+      routes:['user'],
+      rootDirectory:__dirname + '/graphql/'
     }
-  }
+  );
 
-  loadModels(routes, db);
-  // const schema = require ('./graphql/rootSchema')(config.routes.rootDirectory, routes);
+  require('./lib/loader')(config.routes, db);
+
+  const schema = require ('./lib/rootSchemaBuilder')(config.routes);
 
   const cognitoConf = config.authentication.cognito;
 
@@ -69,9 +69,12 @@ module.exports = (config) => {
     next(err);
   });
 
-  app.listen(config.server.port);
+  // app.listen(config.server.port);
   console.log('Running a GraphQL API server at localhost:' + config.server.port + '/graphql');
 
+  const http = require('http');
+  http.createServer(app).listen(config.server.port);
 
-  return app
+
+  return;
 }
