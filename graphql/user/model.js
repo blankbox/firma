@@ -8,18 +8,11 @@ const async = require('async');
     (callback) => {
       models.loadSchema('Tokens', {
         fields:{
-          login_uid: {"type": "uuid"},
           user_uid: {"type": "uuid"},
           token: "text",
           blacklist: {"type":"boolean", "default":false}
         },
-        key:["token"],
-        materialized_views: {
-          token_by_user_uid: {
-            select: ["*"],
-            key : ["user_uid", "token"],
-          }
-        },
+        key:["user_uid","token"],
        table_name: "token_table",
        indexes: ["blacklist"]
       });
@@ -49,20 +42,18 @@ const async = require('async');
     },
 
     (callback) => {
-      models.loadSchema('UserLocalLogin', {
+      models.loadSchema('UserLocal', {
         fields:{
-          login_uid: {"type": "uuid"},
-          first_name    : "text",
-          last_name : "text",
+          user_uid: {"type": "uuid"},
           username     : "text",
           password_hash: "text",
           blocked: {"type":"boolean", "default":false}
         },
-        key:["login_uid"],
+        key:["username"],
         materialized_views: {
-          user_by_username: {
+          local_by_user_uid: {
             select: ["*"],
-            key : ["username", "login_uid"],
+            key : ["user_uid"],
           }
         },
         table_name: "user_local_login",
@@ -71,13 +62,20 @@ const async = require('async');
     },
 
     (callback) => {
-      models.loadSchema('UserCognitoLogin', {
+      models.loadSchema('UserCognito', {
         fields:{
+          user_uid: {"type": "uuid"},
           login_uid: {"type": "uuid"},
           blocked: {"type":"boolean", "default":false}
         },
         key:["login_uid"],
-        table_name: "UserLocalLogin",
+        materialized_views: {
+          cognito_by_user_uid: {
+            select: ["*"],
+            key : ["user_uid"],
+          }
+        },
+        table_name: "user_cognito_login",
       });
     callback(null, models)
     }

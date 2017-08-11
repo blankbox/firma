@@ -16,7 +16,7 @@ module.exports = (config) => {
     }
   );
 
-  require('./lib/loader')(config.routes, db);
+  require('./lib/dbLoader')(config.routes, db);
 
   const schema = require ('./lib/rootSchemaBuilder')(config.routes);
 
@@ -24,7 +24,7 @@ module.exports = (config) => {
 
   let authConfig = {
     jwtCert:cognitoConf.publicKey,
-    identityPoolId: cognitoConf.awsRegion + ':' +  cognitoConf.identityPoolUuid,
+    identityPoolId: cognitoConf.audience,
     error: errorHandler,
     cassandra: db.cassandra,
     userBlacklist: require ('./lib/blacklist')(db)
@@ -69,11 +69,13 @@ module.exports = (config) => {
     next(err);
   });
 
-  // app.listen(config.server.port);
-  console.log('Running a GraphQL API server at localhost:' + config.server.port + '/graphql');
-
-  const http = require('http');
-  http.createServer(app).listen(config.server.port);
+  if (config.server.ssl) {
+    const https = require('https');
+    https.createServer({cert: config.server.ssl.cert, key: config.server.ssl.key}, app).listen(config.server.ssl.port);
+  } else {
+    const http = require('http');
+    http.createServer(app).listen(config.server.port);
+  }
 
 
   return;
