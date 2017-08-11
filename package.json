@@ -4,7 +4,7 @@
   "description": "Authentication API for BlankBox",
   "main": "app.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha graphql/*/tests/",
+    "test": "node_modules/mocha/bin/mocha graphql/*/tests/ tests tests/*/",
     "start": "node app.js"
   },
   "repository": {

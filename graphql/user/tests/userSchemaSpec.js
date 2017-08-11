@@ -19,7 +19,7 @@ let pass = 'test123';
 let email = 'test@foo.bar';
 let newEmail = 'foo@new.test';
 
-describe ('Users', () => {
+xdescribe ('Users', () => {
 
   describe('Create user:', () => {
 

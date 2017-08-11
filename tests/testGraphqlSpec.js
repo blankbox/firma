@@ -15,7 +15,7 @@ let requestContent = {
 };
 
 
-describe ('Graphql', () => {
+xdescribe ('Graphql', () => {
   describe('Get schema:', () => {
 
     let response;

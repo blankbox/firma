@@ -2,7 +2,11 @@ const express = require('express');
 const logger = require('morgan');
 const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
-const cognito = require ('./lib/cognito');
+
+
+const jwt = require ('./lib/jwt');
+const userHandler = require('./lib/userHandler');
+const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
 
 module.exports = (config) => {
@@ -17,20 +21,13 @@ module.exports = (config) => {
   );
 
   require('./lib/dbLoader')(config.routes, db);
-
   const schema = require ('./lib/rootSchemaBuilder')(config.routes);
 
-  const cognitoConf = config.authentication.cognito;
-
   let authConfig = {
-    jwtCert:cognitoConf.publicKey,
-    identityPoolId: cognitoConf.audience,
-    error: errorHandler,
-    cassandra: db.cassandra,
-    userBlacklist: require ('./lib/blacklist')(db)
+    authentication:config.authentication,
+    tokenHandler:userHandler(db),
+    userHandler:tokenHandler(db)
   };
-
-  const authenticate = cognito(authConfig);
 
   let app = express();
 
@@ -39,13 +36,11 @@ module.exports = (config) => {
   app.use ((req, res, next) => {
     req.db = db;
     req.errorHandler = errorHandler;
-    //TODO check DBs are connected - if not connect
     next();
-  })
+  });
 
-  app.use(authenticate);
+  app.use(jwt(authConfig));
 
-  // Get the body for the application/graphql mime-type
   app.use(bodyParser.text(
     { type: 'application/graphql' }
   ));
@@ -69,14 +64,11 @@ module.exports = (config) => {
     next(err);
   });
 
-  if (config.server.ssl) {
+  if (config.https) {
     const https = require('https');
-    https.createServer({cert: config.server.ssl.cert, key: config.server.ssl.key}, app).listen(config.server.ssl.port);
+    https.createServer({cert: config.https.cert, key: config.https.key}, app).listen(config.https.port);
   } else {
     const http = require('http');
-    http.createServer(app).listen(config.server.port);
+    http.createServer(app).listen(config.http.port);
   }
-
-
-  return;
 }
