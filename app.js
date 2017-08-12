@@ -16,10 +16,14 @@ module.exports = (config) => {
 
   config.routes.push(
     {
-      routes:['user'],
+      routes:['user', 'login'],
       rootDirectory:__dirname + '/graphql/'
     }
   );
+
+  if (config.authentication.local){
+    //TODO load local login
+  }
 
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config.routes);
@@ -32,7 +36,7 @@ module.exports = (config) => {
     req.errorHandler = errorHandler;
     req.user = userHandler();
     req.tokenHandler = tokenHandler(db, config.authentication.local || {});
-    req.loginHandler = loginHandler(db);
+    req.loginHandler = loginHandler(db, errorHandler);
     next();
   });
 
