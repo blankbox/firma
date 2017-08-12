@@ -3,13 +3,14 @@ const logger = require('morgan');
 const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
 
-
 const jwt = require ('./lib/jwt');
 const userHandler = require('./lib/userHandler');
 const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
+const loginHandler = require('./lib/loginHandler');
 
 module.exports = (config) => {
+
 
   const db = require ('./lib/dbSetup')(config.database);
 
@@ -22,13 +23,6 @@ module.exports = (config) => {
 
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config.routes);
-
-  let authConfig = {
-    authentication:config.authentication,
-    tokenHandler:userHandler(db),
-    userHandler:tokenHandler(db)
-  };
-
   let app = express();
 
   app.use(logger('dev'));
@@ -36,10 +30,22 @@ module.exports = (config) => {
   app.use ((req, res, next) => {
     req.db = db;
     req.errorHandler = errorHandler;
+    req.user = userHandler();
+    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
+    req.loginHandler = loginHandler(db);
     next();
   });
 
-  app.use(jwt(authConfig));
+
+  if (config.node.env != 'pro') {
+    app.use('/graphiql', require('express-graphql')({
+      schema: schema,
+      graphiql: true
+    }));
+
+  }
+
+  app.use(jwt(config.authentication));
 
   app.use(bodyParser.text(
     { type: 'application/graphql' }
@@ -61,6 +67,7 @@ module.exports = (config) => {
   app.use(function(req, res, next) {
     let err = new Error('Not Found');
     err.status = 404;
+    res.status(err.status).send('Not Found')
     next(err);
   });
 
