@@ -24,7 +24,7 @@ module.exports = {
       const PublicError = root.errorHandler.PublicError;
       const PrivateError = root.errorHandler.PrivateError;
       return new Promise ((resolve, reject) =>{
-        root.user.mustBeVerified(true);
+        root.user.mustBeUser(true);
 
         if (args.email) {
           db.cassandra.instance.User.findOne({email:args.email}, {materialized_view: 'user_by_email'},(err, user) => {

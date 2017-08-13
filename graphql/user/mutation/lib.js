@@ -27,7 +27,7 @@ const hashPassword = (root, args, user, cb) => {
   });
 };
 const checkEmail = (root, args, cb) => {
-  root.db.cassandra.instance.User.findOne(
+  root.db.cassandra.instance.UserProfile.findOne(
     {email:args.email},
     {materialized_view:'user_by_email'}, (err, user) => {
     if (err) {

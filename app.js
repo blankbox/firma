@@ -16,7 +16,7 @@ module.exports = (config) => {
 
   config.routes.push(
     {
-      routes:['user', 'login'],
+      routes:['user', 'login', 'timeline'],
       rootDirectory:__dirname + '/graphql/'
     }
   );
@@ -44,7 +44,7 @@ module.exports = (config) => {
   if (config.node.env != 'pro') {
     app.use('/graphiql', require('express-graphql')({
       schema: schema,
-      graphiql: true
+      graphiql: true,
     }));
 
   }

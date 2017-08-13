@@ -38,3 +38,9 @@ jspm_packages
 
 # Environment variables
 .env
+
+
+vybe_test*
+
+
+documentation.html

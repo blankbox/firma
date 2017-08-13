@@ -7,30 +7,38 @@ const GraphQLString = graphql.GraphQLString;
 const GraphQLList = graphql.GraphQLList;
 const GraphQLNonNull = graphql.GraphQLNonNull;
 
-const UserType = new GraphQLObjectType({
-  name: 'user',
+const LocalLoginType = new GraphQLObjectType({
+  name: 'login',
   fields: () => ({
-    user_uid: {
+    login_uid: {
       type: GraphQLString,
-      description: 'User UUID'
+      description: 'Login UUID'
     },
-    email: {
+    username: {
       type: GraphQLString,
-      description: 'Email'
+      description: 'User name'
     },
-    first_name: {
+    password: {
       type: GraphQLString,
-      description: 'First name'
+      description: 'Password'
     },
-    last_name: {
+    new_password: {
       type: GraphQLString,
-      description: 'Last name'
+      description: 'new password - used for password change'
     },
     blocked: {
       type: GraphQLBoolean,
       description: 'Flag to mark if the user is blocked'
-    }
+    },
+    user_token: {
+      type: GraphQLString,
+      description: 'JWT'
+    },
+    user_uid: {
+      type: GraphQLString,
+      description: 'Login UUID'
+    },
   })
 });
 
-module.exports = UserType;
+module.exports = LocalLoginType;
