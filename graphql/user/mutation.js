@@ -1,23 +1,26 @@
-const graphql = require('graphql');
 const async = require('async');
 
 const Uuid = require('cassandra-driver').types.Uuid;
 
-const GraphQLObjectType = graphql.GraphQLObjectType;
-const GraphQLInt = graphql.GraphQLInt;
-const GraphQLBoolean = graphql.GraphQLBoolean;
-const GraphQLString = graphql.GraphQLString;
-const GraphQLList = graphql.GraphQLList;
-const GraphQLNonNull = graphql.GraphQLNonNull;
-const jwt = require('jsonwebtoken');
+
 const lib = require('./mutation/lib');
 const checkPassword = lib.checkPassword;
 const hashPassword = lib.hashPassword;
 const checkEmail = lib.checkEmail;
 
-const UserType = require ('./schema');
 
-module.exports = {
+module.exports = (graphql) => {
+
+  const GraphQLObjectType = graphql.GraphQLObjectType;
+  const GraphQLInt = graphql.GraphQLInt;
+  const GraphQLBoolean = graphql.GraphQLBoolean;
+  const GraphQLString = graphql.GraphQLString;
+  const GraphQLList = graphql.GraphQLList;
+  const GraphQLNonNull = graphql.GraphQLNonNull;
+
+  const UserType = graphql.schema.user//require ('./schema')(graphql);
+
+  return {
     createUser:{
       type: new GraphQLList(UserType),
       description: 'Add a user',
@@ -205,5 +208,5 @@ module.exports = {
         });
       }
     }
-
+  }
 }

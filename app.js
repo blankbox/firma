@@ -14,9 +14,11 @@ module.exports = (config) => {
 
   const db = require ('./lib/dbSetup')(config.database);
 
+//, 'timeline'
+//,
   config.routes.push(
     {
-      routes:['user', 'login', 'timeline'],
+      routes:['user', 'login'],
       rootDirectory:__dirname + '/graphql/'
     }
   );

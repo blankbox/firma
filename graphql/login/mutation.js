@@ -1,33 +1,28 @@
-const graphql = require('graphql');
-const async = require('async');
+module.exports = (graphql) => {
 
-const Uuid = require('cassandra-driver').types.Uuid;
+  const GraphQLObjectType = graphql.GraphQLObjectType;
+  const GraphQLInt = graphql.GraphQLInt;
+  const GraphQLBoolean = graphql.GraphQLBoolean;
+  const GraphQLString = graphql.GraphQLString;
+  const GraphQLList = graphql.GraphQLList;
+  const GraphQLNonNull = graphql.GraphQLNonNull;
 
-const GraphQLObjectType = graphql.GraphQLObjectType;
-const GraphQLInt = graphql.GraphQLInt;
-const GraphQLBoolean = graphql.GraphQLBoolean;
-const GraphQLString = graphql.GraphQLString;
-const GraphQLList = graphql.GraphQLList;
-const GraphQLNonNull = graphql.GraphQLNonNull;
-const jwt = require('jsonwebtoken');
-
-
-const LoginType = require ('./schema');
-
-module.exports = {
-  registerLogin:{
-    type: new GraphQLList(LoginType),
-    description: 'Add a login',
-    resolve: (root) => {
-      return new Promise ((resolve, reject) => {
-        root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
-          if (err) {
-            reject(err)
-          }
-          resolve([login])
+  const LoginType = graphql.schema.login;
+  return {
+    registerLogin:{
+      type: new GraphQLList(LoginType),
+      description: 'Add a login',
+      resolve: (root) => {
+        return new Promise ((resolve, reject) => {
+          root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
+            if (err) {
+              reject(err)
+            }
+            resolve([login])
+          });
         });
-      });
+      }
     }
-  }
 
+  }
 }

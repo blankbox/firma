@@ -1,4 +1,5 @@
-const graphql = require('graphql');
+
+module.exports = (graphql) => {
 
 const GraphQLObjectType = graphql.GraphQLObjectType;
 const GraphQLInt = graphql.GraphQLInt;
@@ -7,7 +8,7 @@ const GraphQLString = graphql.GraphQLString;
 const GraphQLList = graphql.GraphQLList;
 const GraphQLNonNull = graphql.GraphQLNonNull;
 
-const LoginType = new GraphQLObjectType({
+return new GraphQLObjectType({
   name: 'login',
   fields: () => ({
     login_uid: {
@@ -29,4 +30,4 @@ const LoginType = new GraphQLObjectType({
   })
 });
 
-module.exports = LoginType;
+}
