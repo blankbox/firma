@@ -8,10 +8,9 @@ const async = require('async');
           user_uid: {"type": "uuid"},
           audience: "text",
           login_uid: "uuid",
-          blacklist: {"type":"boolean", "default":false},
-          permissions: "text"
+          blacklist: {"type":"boolean", "default":false}
         },
-        key:["audience", "login_uid"],
+        key:["login_uid", "audience"], //TODO is this the correct way round?
         materialized_views: {
           login_by_user: {
             select: ["*"],
@@ -23,20 +22,7 @@ const async = require('async');
       });
       callback(null, models)
     },
-    (callback) => {
-      models.loadSchema('Token', {
-        fields:{
-          token: "text",
-          login_uid: "uuid",
-          type: "text", //user/renewal
-          blacklist: {"type":"boolean", "default":false}
-        },
-        key:["token"],
-       table_name: "token_table",
-       indexes: ["blacklist"]
-      });
-      callback(null, models)
-    },
+
   ],
   (err, models) => {
     return models;
