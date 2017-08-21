@@ -38,29 +38,39 @@ module.exports = (graphql) => {
           type: GraphQLString
         }
       },
-      resolve: (root, args) => {
+      resolve: (root, args, ast, info) => {
         const db = root.db;
         const PublicError = root.errorHandler.PublicError;
         const PrivateError = root.errorHandler.PrivateError;
         return new Promise ((resolve, reject) => {
           root.user.mustBeLoggedIn(true);
           root.user.mustBeUser(false);
+
           checkEmail (root, args, (err, user) => {
             if (err || user) {
-              reject(err || new PublicError('UserError', 'Email address in use', 403));
+              return reject(err || new PublicError('UserError', 'Email address in use', 403));
             } else {
+              let userUid = Uuid.random();
               let user = new db.cassandra.instance.UserProfile({
                 first_name:args.first_name,
                 last_name:args.last_name,
                 email:args.email,
-                user_uid: Uuid.random()
+                user_uid: userUid,
+                login_uid: root.user.loginUid
               });
 
               user.save((err) => {
                 if (err) {
-                  reject( new PrivateError('CassandraError', 'error saving user', 500));
+                  return reject( new PrivateError('CassandraError', 'error saving user', 500));
                 } else {
                   resolve([user]);
+                  db.cassandra.instance.Login.update(
+                    {audience:root.user.audience, login_uid:root.user.loginUid},
+                    {user_uid:userUid},(err) => {
+                      if (err) {
+                        console.log(err);
+                      }
+                    });
                 }
               });
             }

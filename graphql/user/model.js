@@ -7,18 +7,18 @@ const async = require('async');
       models.loadSchema('UserProfile', {
         fields:{
           user_uid: {"type": "uuid"},
-          login_uids: {"type": "text"},//array
+          login_uid: {"type": "uuid"},
           first_name    : "text",
           last_name : "text",
           email     : "text",
           blocked: {"type":"boolean", "default":false},
           client_data: "text"
         },
-        key:["user_uid"],
+        key:["user_uid", "login_uid"],
         materialized_views: {
           user_by_email: {
             select: ["*"],
-            key : ["email", "user_uid"],
+            key : ["email", "user_uid", "login_uid"],
           }
         },
         table_name: "user_profile",

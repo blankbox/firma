@@ -7,8 +7,6 @@ module.exports = (graphql) => {
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
-  console.log(graphql.schema);
-
   const UserType = graphql.schema.user;//require ('./schema')(graphql);
 
   return {

@@ -34,7 +34,7 @@ jwt.sign({ foo: 'bar' }, cert,  {
   user_token = token;
 });
 
-describe ('Users', () => {
+xdescribe ('Users', () => {
 
   describe('Create user:', () => {
 
