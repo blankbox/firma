@@ -23,7 +23,21 @@ const async = require('async');
         table_name: "user_local_login",
       });
       callback(null, models)
-    }
+    },
+    (callback) => {
+      models.loadSchema('Token', {
+        fields:{
+          token: "text",
+          login_uid: "uuid",
+          type: "text", //user/renewal
+          blacklist: {"type":"boolean", "default":false}
+        },
+        key:["token"],
+       table_name: "token_table",
+       indexes: ["blacklist"]
+      });
+      callback(null, models)
+    },
   ],
   (err, models) => {
     return models;
