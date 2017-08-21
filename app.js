@@ -11,11 +11,8 @@ const loginHandler = require('./lib/loginHandler');
 
 module.exports = (config) => {
 
-
   const db = require ('./lib/dbSetup')(config.database);
 
-//, 'timeline'
-//,
   config.routes.push(
     {
       routes:['user', 'login'],
@@ -57,7 +54,18 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
+  if (config.node.env != 'pro' && config.node.env =='debug') {
+    app.use((req, res, next) => {
+      console.log(req.headers);
+      console.log(req.user);
+      console.log(req.body);
+      next()
+    })
+
+  }
+
   app.post('/graphql', (req, res) => {
+
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
       if (req.result.errors){
