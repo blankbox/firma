@@ -46,7 +46,8 @@ describe ('Flow', () => {
       requestContent.body = `
         mutation {
           registerLogin {
-            login_uid
+            login_uid,
+            permissions
           }
         }`;
       request(requestContent, (error, res) => {
@@ -65,6 +66,36 @@ describe ('Flow', () => {
     it('returns login_uid ', () => {
       data =  JSON.parse(response.body).data.registerLogin.pop();
       assert.ok(data.login_uid);
+    });
+
+  });
+
+  describe('Register login - try 2 should fail', () => {
+    let response;
+    before (done => {
+      requestContent.headers['user_token'] = user_token;
+      requestContent.body = `
+        mutation {
+          registerLogin {
+            login_uid
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body);
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 400', () => {
+      assert.equal(400, response.statusCode);
+    });
+
+    it('returns error ', () => {
+      data =  JSON.parse(response.body).error;
+      assert.ok(data);
     });
 
   });

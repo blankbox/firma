@@ -12,11 +12,11 @@ const GraphQLNonNull = graphql.GraphQLNonNull;
 const jwt = require('jsonwebtoken');
 
 
-const LoginType = require ('./schema');
+const PermissionsType = require ('./schema');
 
 module.exports = {
-  registerLogin:{
-    type: new GraphQLList(LoginType),
+  updatePermissions:{
+    type: new GraphQLList(PermissionsType),
     description: 'Add a login',
     resolve: (root) => {
       return new Promise ((resolve, reject) => {

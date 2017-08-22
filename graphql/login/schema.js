@@ -25,7 +25,7 @@ return new GraphQLObjectType({
       description: 'Login UUID'
     },
     permissions: {
-      type: GraphQLString,
+      type: GraphQLJSON,
       description: 'Roles'
     }
   })

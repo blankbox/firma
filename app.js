@@ -8,6 +8,8 @@ const userHandler = require('./lib/userHandler');
 const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
 const loginHandler = require('./lib/loginHandler');
+const fs = require('fs');
+
 
 module.exports = (config) => {
 
@@ -15,7 +17,7 @@ module.exports = (config) => {
 
   config.routes.push(
     {
-      routes:['user', 'login'],
+      routes:['user', 'login', 'permissions'],
       rootDirectory:__dirname + '/graphql/'
     }
   );
@@ -23,7 +25,20 @@ module.exports = (config) => {
   if (config.authentication.local){
     //TODO load local login
   }
+  const permissionsHandler = require('./lib/permissionsHandler')();
 
+  const loadRoles = (routes) => {
+    for (let dir of routes) {
+      for (let r of dir.routes) {
+        let file = dir.rootDirectory + r;
+        if (fs.existsSync(file + '/permissions.json')) {
+          permissionsHandler.addPermissionsToRole(require(file + '/permissions.json'));
+        }
+      }
+    }
+  }
+
+  loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config.routes);
   let app = express();
@@ -32,6 +47,7 @@ module.exports = (config) => {
 
   app.use ((req, res, next) => {
     req.db = db;
+    req.permissionsHandler = permissionsHandler;
     req.errorHandler = errorHandler;
     req.user = userHandler();
     req.tokenHandler = tokenHandler(db, config.authentication.local || {});
