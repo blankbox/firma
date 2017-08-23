@@ -44,6 +44,6 @@ const GraphQLJSON = graphql.GraphQLJSON
         description: 'Roles'
       },
     })
-});
+  });
 
 }

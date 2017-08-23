@@ -31,8 +31,8 @@ module.exports = (config) => {
     for (let dir of routes) {
       for (let r of dir.routes) {
         let file = dir.rootDirectory + r;
-        if (fs.existsSync(file + '/permissions.json')) {
-          permissionsHandler.addPermissionsToRole(require(file + '/permissions.json'));
+        if (fs.existsSync(file + '/permissions.js')) {
+          permissionsHandler.addPermissionsToRole(require(file + '/permissions.js'), ()=>{});
         }
       }
     }
@@ -51,7 +51,7 @@ module.exports = (config) => {
     req.errorHandler = errorHandler;
     req.user = userHandler();
     req.tokenHandler = tokenHandler(db, config.authentication.local || {});
-    req.loginHandler = loginHandler(db, errorHandler);
+    req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
     next();
   });
 
@@ -70,10 +70,11 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
-  if (config.node.env != 'pro' && config.node.env =='debug') {
+  if (config.node.env != 'pro' ) {
     app.use((req, res, next) => {
-      console.log(req.headers);
-      console.log(req.user);
+      console.log('--------------------------------------------------------------------');
+      // console.log(req.headers);
+      console.log('user perms:', req.user);
       console.log(req.body);
       next()
     })
@@ -84,6 +85,9 @@ module.exports = (config) => {
 
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
+      if (config.node.env != 'pro' ) {
+        console.log(result);
+      }
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
         //TODO workout how to deal with multiple errors cleanly
