@@ -6,11 +6,18 @@
     "ecmaVersion":6
   },
   "plugins": [
-    "mocha"
+    "mocha",
+    "promise"
   ],
   "rules": {
     "no-console": 0,
-    "no-var":1
+    "no-var":1,
+    "promise/avoid-new": "off",
+    "promise/no-native": "off",
   },
-  "extends": "eslint:recommended"
+  "extends": [
+    "eslint:recommended"
+  ],
+  "globals": {"Promise": true}
+
 }

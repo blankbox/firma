@@ -4,7 +4,7 @@
   "description": "Authentication API for BlankBox",
   "main": "app.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha tests/",
+    "test": "node_modules/mocha/bin/mocha graphql/*/tests/ tests tests/*/",
     "start": "node app.js"
   },
   "repository": {
@@ -18,20 +18,30 @@
   },
   "homepage": "https://github.com/blankbox/firma#readme",
   "dependencies": {
+    "async": "^2.5.0",
+    "bcrypt": "^1.0.2",
     "body-parser": "^1.17.1",
     "dotenv-safe": "^4.0.4",
     "express": "^4.15.2",
+    "express-cassandra": "^1.9.0",
+    "express-graphql": "^0.6.7",
     "graphql": "^0.9.6",
-    "graphql-errors": "^2.1.0",
+    "graphql-type-json": "^0.1.4",
+    "http": "0.0.0",
+    "https": "^1.0.0",
     "jsonwebtoken": "^7.4.1",
+    "moment": "^2.18.1",
     "morgan": "^1.8.1",
     "redis": "^2.7.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
     "assert": "^1.4.1",
+    "eslint": "^4.4.1",
     "eslint-plugin-mocha": "^4.9.0",
+    "eslint-plugin-promise": "^3.5.0",
     "mocha": "^3.3.0",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "uuid": "^3.1.0"
   }
 }

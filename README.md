@@ -15,7 +15,7 @@ Clone the sample and fill in your preferred values
 cp .env.example .env
 nano .env
 ```
-Do not add .env to source control, and if you add additonal variables make sure they are listed in the example.
+Do not add .env to source control, and if you add additional variables make sure they are listed in the example.
 
 ## Running the server.
 ```
@@ -27,3 +27,14 @@ With the server Running
 ```
 npm test
 ```
+
+## Development DBs
+
+docker pull bitnami/cassandra
+docker pull bitnami/redis
+
+docker start cassandra
+docker start redis
+
+Running bash in docker cassadra container - can run cqlsh / rediscli
+docker exec -i -t cassandra /bin/bash
