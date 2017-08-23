@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/afd34ce2e1d14813b9ca827f99a58b1a)](https://www.codacy.com/app/darren.looby/firma?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=blankbox/firma&amp;utm_campaign=Badge_Grade)
+
 # firma
 Node.js based API framework.
 
