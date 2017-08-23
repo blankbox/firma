@@ -171,11 +171,9 @@ module.exports = (graphql) => {
         },
         blocked: {
           type: GraphQLBoolean,
-          description: 'Flag to mark if the user is blocked'
         },
         private: {
           type: GraphQLBoolean,
-          description: 'Flag to mark if the user is blocked'
         }
       },
       resolve: (root, args, discard, info) => {
@@ -252,7 +250,7 @@ module.exports = (graphql) => {
 
     deleteUser:{
       //TODO update to remove (archive?) permissions from login
-      //Should make user *difficult* to recover 
+      //Should make user *difficult* to recover
       type: new GraphQLList(UserType),
       description: 'Delete a user',
       args: {

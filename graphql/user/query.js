@@ -18,7 +18,6 @@ module.exports = (graphql) => {
       args:{
         email: {
           type: new GraphQLNonNull(GraphQLString),
-          description: 'Email'
         }
       },
       resolve: (root, args, ast , info) => {
@@ -65,7 +64,6 @@ module.exports = (graphql) => {
       args:{
         user_uid: {
           type: new GraphQLNonNull(GraphQLString),
-          description: 'User id'
         }
       },
       resolve: (root, args, ast , info) => {

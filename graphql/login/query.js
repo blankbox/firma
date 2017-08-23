@@ -16,7 +16,6 @@ module.exports = (graphql) => {
       args:{
         user_uid: {
           type: GraphQLString,
-          description: 'Uuid For the Login'
         }
       },
       resolve: (root, args) => {
