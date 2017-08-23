@@ -1,3 +1,5 @@
+const Uuid = require('cassandra-driver').types.Uuid;
+
 module.exports = (graphql) => {
 
   const GraphQLObjectType = graphql.GraphQLObjectType;
@@ -7,53 +9,99 @@ module.exports = (graphql) => {
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
-  const UserType = graphql.schema.user;//require ('./schema')(graphql);
+  const UserType = graphql.schema.user;
 
   return {
-    queryUser: {
+    queryUserByEmail: {
       type: new GraphQLList(UserType),
       description:'Get user data',
       args:{
         email: {
-          type: GraphQLString,
+          type: new GraphQLNonNull(GraphQLString),
           description: 'Email'
         }
       },
-      resolve: (root, args) => {
+      resolve: (root, args, ast , info) => {
         const db = root.db;
         const PublicError = root.errorHandler.PublicError;
         const PrivateError = root.errorHandler.PrivateError;
+        const checkPermissions = root.permissionsHandler.checkPermissions;
+
         return new Promise ((resolve, reject) =>{
-          root.user.mustBeUser(true);
 
-          if (args.email) {
-            db.cassandra.instance.User.findOne({email:args.email}, {materialized_view: 'user_by_email'},(err, user) => {
-              if (err) {
-                //handle error
-              } else {
-                if (user){
-                  resolve([user]);
-                } else {
-                  reject(new Error('test'));
-                }
-              }
-            });
-          } else {
-            db.cassandra.instance.User.find({}, (err, users) => {
-              if (err) {
-                //handle error
-              } else {
-                let u = users[0];
-                console.log(u.email);
-                resolve([ {
-                  user_uid: u.user_uid,
-                  email: u.email
-                }])
-              }
-            });
+          const permissions = root.user.permissions['findUser'];
+          let possible = ['ALL', String(root.user.user_uid)];
+
+          let perms = checkPermissions(permissions, possible);
+
+          if (!perms) {
+            return reject (new PublicError('Error', 'You can\'t search for users', 403))
           }
-        })
 
+          db.cassandra.instance.UserProfile.findOne(
+            {email:args.email},
+            {materialized_view: 'user_by_email'},
+            (err, user) => {
+            if (err) {
+              reject( new PrivateError('CassandraError', String(err), 500));
+            } else {
+              const priPerms = root.user.permissions['findHiddenUser'];
+              if (
+                (user && (user.private || user.blocked || user.deleted)) && //User is hidden
+                (!checkPermissions(priPerms, possible)) //Doesn't have permmsion to see this hidden              )
+              )
+              {
+                return resolve ([]);
+              }
+              return resolve([user]);
+            }
+          });
+        });
+      }
+    },
+    queryUserByUid: {
+      type: new GraphQLList(UserType),
+      description:'Get user data',
+      args:{
+        user_uid: {
+          type: new GraphQLNonNull(GraphQLString),
+          description: 'User id'
+        }
+      },
+      resolve: (root, args, ast , info) => {
+        const db = root.db;
+        const PublicError = root.errorHandler.PublicError;
+        const PrivateError = root.errorHandler.PrivateError;
+        const checkPermissions = root.permissionsHandler.checkPermissions;
+
+        return new Promise ((resolve, reject) =>{
+
+          const permissions = root.user.permissions['findUser'];
+          let possible = ['ALL', String(root.user.userUid)];
+          let perms = checkPermissions(permissions, possible);
+
+          if (!perms) {
+            return reject (new PublicError('Error', 'You can\'t search for users', 403))
+          }
+
+          db.cassandra.instance.UserProfile.findOne(
+            {user_uid:Uuid.fromString(args.user_uid)},
+            (err, user) => {
+            if (err) {
+              reject( new PrivateError('CassandraError', String(err), 500));
+            } else {
+              const priPerms = root.user.permissions['findHiddenUser'];
+              if (
+                (user && (user.private || user.blocked || user.deleted)) && //User is hidden
+                (!checkPermissions(priPerms, possible)) //Doesn't have permmsion to see this hidden              )
+              )
+              {
+                return resolve ([]);
+              }
+              return resolve([user]);
+            }
+          });
+        });
       }
     }
   };

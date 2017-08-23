@@ -31,6 +31,7 @@ const checkEmail = (root, args, cb) => {
     {email:args.email},
     {materialized_view:'user_by_email'}, (err, user) => {
     if (err) {
+      console.log(err);
       cb(new root.errorHandler.PrivateError('CassandraError', 'error select from user by email', 500));
     } else {
       cb(null, user);
