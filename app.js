@@ -88,10 +88,12 @@ module.exports = (config) => {
       if (config.node.env != 'pro' ) {
         console.log(result);
       }
+
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
         //TODO workout how to deal with multiple errors cleanly
-        res.status(err.status || 400).json({error:err.message});
+        req.result.errors = err.errors;
+        res.status(err.status || 400).json(req.result);
       } else {
         res.send(req.result);
       }

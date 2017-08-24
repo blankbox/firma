@@ -14,7 +14,7 @@ const async = require('async');
         materialized_views: {
           login_by_user: {
             select: ["*"],
-            key : ["user_uid", "login_uid"],
+            key : ["user_uid", "login_uid", "audience"],
           }
         },
         table_name: "login_table",
