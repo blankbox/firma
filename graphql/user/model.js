@@ -8,8 +8,8 @@ const async = require('async');
         fields:{
           user_uid: {"type": "uuid"},
           login_uid: {
-            type: "list",
-            typeDef: "<uuid>"
+            type: "map",
+            typeDef: "<text, text>"
           },
           first_name    : "text",
           last_name : "text",

@@ -59,12 +59,17 @@ module.exports = (graphql) => {
             } else {
               let userUid = Uuid.random();
 
+
+              let login = {}
+
+              login[root.user.loginUid] = root.user.audience;
+
               let user = new db.cassandra.instance.UserProfile({
                 first_name:args.first_name,
                 last_name:args.last_name,
                 email:args.email,
                 user_uid: userUid,
-                login_uid: [root.user.loginUid]
+                login_uid: login
               });
 
               let updateLogin = db.cassandra.instance.Login.update(
@@ -139,6 +144,7 @@ module.exports = (graphql) => {
                 removeLoginPermissions,
                 updateAllPermissions
               ]
+
               db.cassandra.doBatch(batch, (err) => {
                 if (err) {
                   return reject( new PrivateError('CassandraError', 'error saving user', 500));
