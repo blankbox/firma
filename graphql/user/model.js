@@ -9,7 +9,7 @@ const async = require('async');
           user_uid: {"type": "uuid"},
           login_uid: {
             type: "map",
-            typeDef: "<text, text>"
+            typeDef: "<text, text>" //login_uid: audience
           },
           first_name    : "text",
           last_name : "text",
