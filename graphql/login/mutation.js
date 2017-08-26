@@ -18,11 +18,13 @@ module.exports = (graphql) => {
 
         return new Promise ((resolve, reject) => {
 
+          root.user.mustBeLoggedIn(true);
+
           const permissions = root.user.permissions[info.fieldName];
           let possible = [String(root.user.loginUid), 'ALL'];
-
+          console.log(checkPermissions(permissions, possible));
           if (!checkPermissions(permissions, possible)) {
-            return reject( new PubErr('LoginError', '', 403));
+            return reject( new PubErr('LoginError', 'Foo', 403));
           }
 
           if (root.user.login) {
