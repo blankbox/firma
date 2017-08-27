@@ -26,6 +26,7 @@
     "express-cassandra": "^1.9.0",
     "express-graphql": "^0.6.7",
     "graphql": "^0.9.6",
+    "graphql-iso-date": "^3.2.0",
     "graphql-type-json": "^0.1.4",
     "http": "0.0.0",
     "https": "^1.0.0",
