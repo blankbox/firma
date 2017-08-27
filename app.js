@@ -25,7 +25,7 @@ module.exports = (config) => {
   if (config.authentication.local){
     //TODO load local login
   }
-  const permissionsHandler = require('./lib/permissionsHandler')();
+  const permissionsHandler = require('./lib/permissionsHandler')(db);
 
   const loadRoles = (routes) => {
     for (let dir of routes) {
@@ -40,10 +40,12 @@ module.exports = (config) => {
 
   loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
-  const schema = require ('./lib/rootSchemaBuilder')(config.routes);
+  const schema = require ('./lib/rootSchemaBuilder')(config.routes, db, errorHandler, permissionsHandler);
   let app = express();
 
-  app.use(logger('dev'));
+  if (config.node.env != 'pro') {
+    app.use(logger('dev'));
+  }
 
   app.use ((req, res, next) => {
     req.db = db;
@@ -91,7 +93,6 @@ module.exports = (config) => {
 
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
-        //TODO workout how to deal with multiple errors cleanly
         req.result.errors = err.errors;
         res.status(err.status || 400).json(req.result);
       } else {

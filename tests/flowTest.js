@@ -6,7 +6,8 @@ const assert = require('assert');
 const request = require('request');
 const uuid = require('uuid/v1');
 
-let url = 'http://localhost:' + 3000 + '/graphql';
+// let url = 'http://localhost:' + 3000 + '/graphql';
+let url = 'https://vybe-dev.blankbox.co.uk/graphql'//'http://localhost:' + 3000 + '/graphql';
 
 let requestContent = {
   method: 'POST',
@@ -36,7 +37,38 @@ jwt.sign({ foo: 'bar' }, cert,  {
 let data;
 let uid;
 
+
+
 describe ('Flow', () => {
+  describe('Register login - no token', () => {
+    let response;
+    before (done => {
+      requestContent.body = `
+        mutation {
+          registerLogin {
+            login_uid
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          console.log(res.body);
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 40x', () => {
+      assert.equal(401, response.statusCode);
+    });
+
+    it('returns error ', () => {
+      let d = JSON.parse(response.body).errors.pop();
+      assert.equal("User token is missing", d.message);
+    });
+
+  });
+
 
   describe('Register login', () => {
     let response;
@@ -50,6 +82,7 @@ describe ('Flow', () => {
           }
         }`;
       request(requestContent, (error, res) => {
+        console.log(error);
         if (!error) {
           console.log(res.body);
           response = res;
@@ -93,7 +126,7 @@ describe ('Flow', () => {
     });
 
     it('returns error ', () => {
-      data =  JSON.parse(response.body).error;
+      data =  JSON.parse(response.body).errors;
       assert.ok(data);
     });
 
