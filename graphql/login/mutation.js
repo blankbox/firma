@@ -22,7 +22,6 @@ module.exports = (graphql) => {
 
           const permissions = root.user.permissions[info.fieldName];
           let possible = [String(root.user.loginUid), 'ALL'];
-          console.log(checkPermissions(permissions, possible));
           if (!checkPermissions(permissions, possible)) {
             return reject( new PubErr('LoginError', 'Foo', 403));
           }
