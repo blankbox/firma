@@ -90,7 +90,6 @@ module.exports = (config) => {
       if (config.node.env != 'pro' ) {
         console.log(result);
       }
-      console.log(result);
 
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
