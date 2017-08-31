@@ -90,6 +90,7 @@ module.exports = (config) => {
       if (config.node.env != 'pro' ) {
         console.log(result);
       }
+      console.log(result);
 
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
@@ -118,7 +119,7 @@ module.exports = (config) => {
 
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
-  // 
+  //
   if (config.dataService) {
     config.dataService(db);
   }
