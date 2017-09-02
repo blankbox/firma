@@ -8,7 +8,7 @@
 module.exports = [
   {
     role:'loggedInUser',
-    permissions:['text_search']
+    permissions:['text_search', 'uid_search', 'location_search']
   }
 
 ]
