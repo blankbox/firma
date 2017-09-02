@@ -124,4 +124,12 @@ module.exports = (config) => {
     const http = require('http');
     http.createServer(app).listen(config.http.port);
   }
+
+  //API to allow direct access to the database instances from the consuming
+  //application - intented to allow use of redis as a messenger, and data import/export
+  //
+  if (config.dataService) {
+    config.dataService(db);
+  }
+
 }
