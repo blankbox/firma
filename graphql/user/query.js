@@ -2,9 +2,6 @@ const Uuid = require('cassandra-driver').types.Uuid;
 
 module.exports = (graphql) => {
 
-  const GraphQLObjectType = graphql.GraphQLObjectType;
-  const GraphQLInt = graphql.GraphQLInt;
-  const GraphQLBoolean = graphql.GraphQLBoolean;
   const GraphQLString = graphql.GraphQLString;
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
@@ -20,7 +17,7 @@ module.exports = (graphql) => {
           type: new GraphQLNonNull(GraphQLString),
         }
       },
-      resolve: (root, args, ast , info) => {
+      resolve: (root, args) => {
         const db = root.db;
         const PublicError = root.errorHandler.PublicError;
         const PrivateError = root.errorHandler.PrivateError;
@@ -66,7 +63,7 @@ module.exports = (graphql) => {
           type: new GraphQLNonNull(GraphQLString),
         }
       },
-      resolve: (root, args, ast , info) => {
+      resolve: (root, args) => {
         const db = root.db;
         const PublicError = root.errorHandler.PublicError;
         const PrivateError = root.errorHandler.PrivateError;
