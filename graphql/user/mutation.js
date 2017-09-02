@@ -7,10 +7,13 @@ const lib = require('./mutation/lib');
 const checkEmail = lib.checkEmail;
 
 
-module.exports = (graphql) => {
+module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => {
 
-  const GraphQLObjectType = graphql.GraphQLObjectType;
-  const GraphQLInt = graphql.GraphQLInt;
+  const PublicError = errorHandler.PublicError;
+  const PrivateError = errorHandler.PrivateError;
+  const checkPermissions = permissionsHandler.checkPermissions;
+  const resolvers = searchConf.resolvers;
+
   const GraphQLBoolean = graphql.GraphQLBoolean;
   const GraphQLString = graphql.GraphQLString;
   const GraphQLList = graphql.GraphQLList;
@@ -37,10 +40,7 @@ module.exports = (graphql) => {
         }
       },
       resolve: (root, args, ast, info) => {
-        const db = root.db;
-        const PublicError = root.errorHandler.PublicError;
-        const PrivateError = root.errorHandler.PrivateError;
-        const checkPermissions = root.permissionsHandler.checkPermissions;
+
 
         return new Promise ((resolve, reject) => {
           root.user.mustBeLoggedIn(true);
@@ -147,10 +147,17 @@ module.exports = (graphql) => {
 
               db.cassandra.doBatch(batch, (err) => {
                 if (err) {
+                  console.log(err);
                   return reject( new PrivateError('CassandraError', 'error saving user', 500));
                 } else {
-                  resolve([user]);
                   root.loginHandler.clearLoginFromCache(root.user.audience, root.user.loginUid);
+                  resolve([user]);
+
+                  let resolver = _.find(resolvers, (s) => {
+                    return s.schema == 'user';
+                  })
+
+                  resolver.addMembers(db, [userUid])
                 }
               });
             }
@@ -183,10 +190,6 @@ module.exports = (graphql) => {
         }
       },
       resolve: (root, args, discard, info) => {
-        const db = root.db;
-        const PublicError = root.errorHandler.PublicError;
-        const PrivateError = root.errorHandler.PrivateError;
-        const checkPermissions = root.permissionsHandler.checkPermissions;
 
         return new Promise ((resolve, reject) => {
           root.user.mustBeLoggedIn(true);
@@ -245,7 +248,12 @@ module.exports = (graphql) => {
                   if (err || !user) {
                    return reject( new PrivateError('CassandraError', 'error reading user', 500));
                   } else {
+                    let resolver = _.find(resolvers, (s) => {
+                      return s.schema == 'user';
+                    })
+
                     resolve([user]);
+                    resolver.addMembers(db, [args.user_uid])
                   }
                 });
               }
@@ -292,7 +300,9 @@ module.exports = (graphql) => {
                 if (err || !user) {
                  return reject( new PrivateError('CassandraError', 'error reading user', 500));
                 } else {
+
                   resolve([user]);
+
                 }
               });
             }
