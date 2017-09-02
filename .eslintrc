@@ -14,7 +14,7 @@
     "no-var":1,
     "promise/avoid-new": "off",
     "promise/no-native": "off",
-    "quotes": off
+    "quotes": "off"
   },
   "extends": [
     "eslint:recommended"
