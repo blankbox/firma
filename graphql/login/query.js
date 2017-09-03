@@ -22,9 +22,9 @@ module.exports = (graphql) => {
           let userid;
           if (args.user_uid) {
             if (!root.user.loginPermissions.includes('UserAdmin') && args.user_uid != root.userHandler.userUid){
-              reject(new PubErr('User error', 'You can\'t manage other users that', 403))
+              reject(new PubErr('User error', 'You can\'t manage other users that', 403));
             }
-            userid = args.user_uid
+            userid = args.user_uid;
           } else {
             userid = root.userHandler.userUid;
           }
@@ -47,4 +47,4 @@ module.exports = (graphql) => {
       }
     }
   };
-}
+};

@@ -26,13 +26,13 @@ module.exports = (graphql) => {
           }
           root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
             if (err) {
-              return reject(err)
+              return reject(err);
             }
-            resolve([login])
+            resolve([login]);
           });
         });
       }
     }
 
-  }
-}
+  };
+};

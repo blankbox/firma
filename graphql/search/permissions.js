@@ -11,4 +11,4 @@ module.exports = [
     permissions:['text_search', 'uid_search', 'location_search']
   }
 
-]
+];

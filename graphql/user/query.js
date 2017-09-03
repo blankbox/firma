@@ -31,7 +31,7 @@ module.exports = (graphql) => {
           let perms = checkPermissions(permissions, possible);
 
           if (!perms) {
-            return reject (new PublicError('Error', 'You can\'t search for users', 403))
+            return reject (new PublicError('Error', 'You can\'t search for users', 403));
           }
 
           db.cassandra.instance.UserProfile.findOne(
@@ -76,7 +76,7 @@ module.exports = (graphql) => {
           let perms = checkPermissions(permissions, possible);
 
           if (!perms) {
-            return reject (new PublicError('Error', 'You can\'t search for users', 403))
+            return reject (new PublicError('Error', 'You can\'t search for users', 403));
           }
 
           db.cassandra.instance.UserProfile.findOne(
@@ -100,4 +100,4 @@ module.exports = (graphql) => {
       }
     }
   };
-}
+};

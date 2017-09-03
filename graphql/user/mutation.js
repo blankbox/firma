@@ -19,7 +19,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
-  const UserType = graphql.schema.user//require ('./schema')(graphql);
+  const UserType = graphql.schema.user;//require ('./schema')(graphql);
 
   return {
     createUser:{
@@ -60,7 +60,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
               let userUid = Uuid.random();
 
 
-              let login = {}
+              let login = {};
 
               login[root.user.loginUid] = root.user.audience;
 
@@ -143,7 +143,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                 addLoginPermissions,
                 removeLoginPermissions,
                 updateAllPermissions
-              ]
+              ];
 
               db.cassandra.doBatch(batch, (err) => {
                 if (err) {
@@ -155,9 +155,9 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
 
                   let resolver = _.find(resolvers, (s) => {
                     return s.schema == 'user';
-                  })
+                  });
 
-                  resolver.addMembers(db, [userUid])
+                  resolver.addMembers(db, [userUid]);
                 }
               });
             }
@@ -217,7 +217,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
           }
 
           if (self) {
-            let allowed = ['email', 'first_name', 'last_name', 'private']
+            let allowed = ['email', 'first_name', 'last_name', 'private'];
             if (_.difference(Object.keys(args), allowed).length > 0){
               return reject( new PublicError('UserError', '', 403));
             }
@@ -236,7 +236,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
             {user_uid: Uuid.fromString(uid)},
             update,
             {return_query: true}
-          )
+          );
 
           db.cassandra.doBatch(
             [updateUser],
@@ -250,15 +250,15 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                   } else {
                     let resolver = _.find(resolvers, (s) => {
                       return s.schema == 'user';
-                    })
+                    });
 
                     resolve([user]);
-                    resolver.addMembers(db, [args.user_uid])
+                    resolver.addMembers(db, [args.user_uid]);
                   }
                 });
               }
            });
-        })
+        });
       }
     },
 
@@ -310,5 +310,5 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
         });
       }
     }
-  }
-}
+  };
+};
