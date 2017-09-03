@@ -6,8 +6,8 @@ const assert = require('assert');
 const request = require('request');
 const uuid = require('uuid/v1');
 
-// let url = 'http://localhost:' + 3000 + '/graphql';
-let url = 'https://vybe-dev.blankbox.co.uk/graphql'//'http://localhost:' + 3000 + '/graphql';
+let url = 'http://localhost:' + 3000 + '/graphql';
+// let url = 'https://vybe-dev.blankbox.co.uk/graphql'//'http://localhost:' + 3000 + '/graphql';
 
 let requestContent = {
   method: 'POST',

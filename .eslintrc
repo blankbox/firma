@@ -14,10 +14,12 @@
     "no-var":1,
     "promise/avoid-new": "off",
     "promise/no-native": "off",
+    "quotes": "off"
   },
   "extends": [
     "eslint:recommended"
   ],
-  "globals": {"Promise": true}
+  "globals": {"Promise": true},
+
 
 }

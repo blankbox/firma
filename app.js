@@ -22,6 +22,15 @@ module.exports = (config) => {
     }
   );
 
+  if (config.search){
+    config.routes.push(
+      {
+        routes:['search'],
+        rootDirectory:__dirname + '/graphql/'
+      }
+    );
+  }
+
   if (config.authentication.local){
     //TODO load local login
   }
@@ -40,7 +49,7 @@ module.exports = (config) => {
 
   loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
-  const schema = require ('./lib/rootSchemaBuilder')(config.routes, db, errorHandler, permissionsHandler);
+  const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
   let app = express();
 
   if (config.node.env != 'pro') {
