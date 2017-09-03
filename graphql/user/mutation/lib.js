@@ -36,10 +36,10 @@ const checkEmail = (root, args, cb) => {
       cb(null, user);
     }
   });
-}
+};
 
 module.exports = {
   checkPassword:checkPassword,
   hashPassword:hashPassword,
   checkEmail:checkEmail
-}
+};

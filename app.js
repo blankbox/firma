@@ -45,7 +45,7 @@ module.exports = (config) => {
         }
       }
     }
-  }
+  };
 
   loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
@@ -87,8 +87,8 @@ module.exports = (config) => {
       // console.log(req.headers);
       console.log('user perms:', req.user);
       console.log(req.body);
-      next()
-    })
+      next();
+    });
 
   }
 
@@ -113,7 +113,7 @@ module.exports = (config) => {
   app.use(function(req, res, next) {
     let err = new Error('Not Found');
     err.status = 404;
-    res.status(err.status).send('Not Found')
+    res.status(err.status).send('Not Found');
     next(err);
   });
 
@@ -132,4 +132,4 @@ module.exports = (config) => {
     config.dataService(db);
   }
 
-}
+};

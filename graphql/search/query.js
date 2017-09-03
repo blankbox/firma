@@ -20,7 +20,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
 
     db.redis.hscan('text_hash', index, 'MATCH', text + '*', (err, result) => {
       out = out.concat(result[1]);
-      if (result[0] == "0" || redisRecursions > 10) { //Allow a maximum of 10 cycles
+      if (result[0] == '0' || redisRecursions > 10) { //Allow a maximum of 10 cycles
         cb(err, out);
       } else {
         redisRecursions ++;
@@ -37,22 +37,22 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
       {raw: true},
       (err, results) => {
         data.err = err;
-        let res = []
+        let res = [];
         for (let row of results) {
           if (resolver.hasPermission(user, checkPermissions,
             { [resolver.identifier]:row[resolver.identifier] }) ) {
-            res.push(row)
+            res.push(row);
           }
         }
         data.results = res;
         dataOut.push(data);
         if(dataIn.length) {
-          cassandraIterator(user, dataIn, dataOut, cb)
+          cassandraIterator(user, dataIn, dataOut, cb);
         } else {
-          cb(dataOut)
+          cb(dataOut);
         }
     });
-  }
+  };
 
   return {
     //TODO this needs to cope with paging
@@ -82,7 +82,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
           redisIterator(0, '*:' + args.text, [], (err, res) => {
 
             let data = {};
-            let results = []
+            let results = [];
             for (let i = 1; i < res.length; i +=2) {
               results.push(res[i]);
             }
@@ -96,17 +96,17 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                   resolver: _.find(resolvers, (s) => {
                     return s.schema == r.type;
                   })
-                }
+                };
               }
               data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
             }
 
             let dataIn = [];
             for (let o of Object.keys(data)) {
-              dataIn.push(data[o])
+              dataIn.push(data[o]);
             }
             cassandraIterator(root.user, dataIn, [], (dataOut) => {
-              let out = dataOut.map(a => a.results)
+              let out = dataOut.map(a => a.results);
               let err = dataOut.map(a => a.err);
               if (err) {
                 for (let e of err) {
@@ -115,11 +115,11 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                   }
                 }
               }
-              return resolve(_.flatten(out))
-            })
+              return resolve(_.flatten(out));
+            });
           });
 
-        })
+        });
       }
     },
     location_search:{
@@ -165,30 +165,31 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                   resolver: _.find(resolvers, (s) => {
                     return s.schema == r.type;
                   })
-                }
+                };
               }
               data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
             }
 
             let dataIn = [];
             for (let o of Object.keys(data)) {
-              dataIn.push(data[o])
+              dataIn.push(data[o]);
             }
 
             cassandraIterator(root.user, dataIn, [], (dataOut) => {
-              let out = dataOut.map(a => a.results)
+              let out = dataOut.map(a => a.results);
               let err = dataOut.map(a => a.err);
               if (err) {
                 for (let e of err) {
                   if (typeof(e) != 'undefined') {
-                    new PrivateError('CassandraError', err, 500);
+                    //TODO workout how to capture these
+                    // new PrivateError('CassandraError', err, 500);
                   }
                 }
               }
-              return resolve(_.flatten(out))
-            })
-          })
-        })
+              return resolve(_.flatten(out));
+            });
+          });
+        });
       }
     },
     uid_search:{
@@ -225,7 +226,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
             let type = res.type;
             let resolver = _.find(resolvers, (s) => {
               return s.schema == type;
-            })
+            });
 
             if (!resolver.hasPermission(root.user, checkPermissions,
               {[resolver.identifier]: res.uid}
@@ -240,15 +241,15 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
                   console.log(err);
                  return reject( new PrivateError('CassandraError', err, 500));
                 }
-                resolve([res])
+                resolve([res]);
               }
-            )
+            );
 
           });
 
-        })
+        });
       }
     },
 
-  }
-}
+  };
+};

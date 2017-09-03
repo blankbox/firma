@@ -43,4 +43,4 @@ const GraphQLList = graphql.GraphQLList;
     })
   });
 
-}
+};

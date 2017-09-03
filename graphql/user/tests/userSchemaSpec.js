@@ -121,7 +121,7 @@ xdescribe ('Users', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body)
+          console.log(res.body);
           response = res;
           done();
         }

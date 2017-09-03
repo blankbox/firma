@@ -64,7 +64,7 @@ describe ('Flow', () => {
 
     it('returns error ', () => {
       let d = JSON.parse(response.body).errors.pop();
-      assert.equal("User token is missing", d.message);
+      assert.equal('User token is missing', d.message);
     });
 
   });
@@ -182,7 +182,7 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body)
+          console.log(res.body);
           response = res;
           done();
         }
@@ -217,7 +217,7 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body)
+          console.log(res.body);
           response = res;
           done();
         }
@@ -321,7 +321,7 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body)
+          console.log(res.body);
           response = res;
           done();
         }

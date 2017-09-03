@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node_modules/mocha/bin/mocha graphql/*/tests/ tests tests/*/",
+    "lint": "node node_modules/eslint/bin/eslint.js --quiet *",
     "start": "node app.js"
   },
   "repository": {

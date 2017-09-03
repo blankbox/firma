@@ -6,7 +6,7 @@ module.exports = (graphql, resolvers) => {
   const resolveType = (data) => {
     for (let r of resolvers) {
       if (data[r.identifier]) {
-        return (graphql.schema[r.schema])
+        return (graphql.schema[r.schema]);
       }
     }
   };
@@ -17,5 +17,5 @@ module.exports = (graphql, resolvers) => {
       types: types,
       resolveType: resolveType
     })
-  ]
-}
+  ];
+};

@@ -10,4 +10,4 @@ module.exports = [
     role:'unregistered',
     permissions:['registerLogin']
   }
-]
+];

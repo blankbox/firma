@@ -1,0 +1,10 @@
+*.pub
+*.md
+*.json
+*.html
+*.log
+LICENSE
+vybe_test*
+
+.nyc*
+coverage*
