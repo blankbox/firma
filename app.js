@@ -50,6 +50,9 @@ module.exports = (config) => {
   loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
+
+
+
   let app = express();
 
   if (config.node.env != 'pro') {
@@ -80,17 +83,6 @@ module.exports = (config) => {
   app.use(bodyParser.text(
     { type: 'application/graphql' }
   ));
-
-  if (config.node.env != 'pro' ) {
-    app.use((req, res, next) => {
-      console.log('--------------------------------------------------------------------');
-      // console.log(req.headers);
-      console.log('user perms:', req.user);
-      console.log(req.body);
-      next();
-    });
-
-  }
 
   app.post('/graphql', (req, res) => {
 
@@ -131,5 +123,29 @@ module.exports = (config) => {
   if (config.dataService) {
     config.dataService(db);
   }
+
+
+  //TODO move this into a more sensible place - is a dev req need if we switch to rect relay modern
+  const {
+    buildClientSchema,
+    introspectionQuery,
+    printSchema,
+  } = require('graphql/utilities');
+  let path = __dirname + '/schema.json';
+
+  // Assume your schema is in ../data/schema
+  // const yourSchemaPath = '../data/schema';
+  const fse = require('fs-extra');
+
+  // Save JSON of full schema introspection for Babel Relay Plugin to use
+  graphql(schema, introspectionQuery).then(result => {
+    let data = JSON.stringify(result, null, 2);
+    fse.outputJson(path, data, () => {});
+  });
+
+  fs.writeFileSync(
+    path+'.graphql',
+    printSchema(schema)
+  );
 
 };
