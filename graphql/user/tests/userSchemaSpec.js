@@ -1,12 +1,9 @@
 /* eslint-env node, mocha */
 
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
+require('dotenv-safe').load('../.env');
 const assert = require('assert');
 const request = require('request');
-const uuid = require('uuid/v1');
-
-let url = 'http://localhost:' + 3000 + '/graphql';
+let url = 'http://localhost:' + process.env.PORT + '/graphql';
 
 let requestContent = {
   method: 'POST',
@@ -22,32 +19,21 @@ let pass = 'test123';
 let email = 'test@foo.bar';
 let newEmail = 'foo@new.test';
 
-let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
-let audience = 'vybe_dev';
-let user_token;
-
-jwt.sign({ foo: 'bar' }, cert,  {
-  audience:audience,
-  subject:audience +':' + uuid(),
-  expiresIn: '1h'
-},function(err, token) {
-  user_token = token;
-});
-
-xdescribe ('Users', () => {
+describe ('Users', () => {
 
   describe('Create user:', () => {
 
     let response;
     before (done => {
-      requestContent.headers['user_token'] = user_token;
       requestContent.body = `
         mutation {
           createUser (
-            email:"` + email + `"
+            email:"` + email + `",
+            password:"` + pass + `"
           ) {
             email,
-            user_uid
+            user_uid,
+            password
           }
         }`;
       request(requestContent, (error, res) => {
@@ -68,7 +54,7 @@ xdescribe ('Users', () => {
     });
   });
 
-  xdescribe('Login user:', () => {
+  describe('Login user:', () => {
 
     let response;
     before (done => {
@@ -107,14 +93,15 @@ xdescribe ('Users', () => {
 
     let response;
     before (done => {
-      requestContent.headers['user_token'] = user_token;
+      requestContent.headers['user_token'] = data.user_token;
       requestContent.body = `
         query {
           queryUser (
-            email:"` + email + `"
+            email:"` + data.email + `"
           ) {
             email,
-            user_uid
+            user_uid,
+            user_token
           }
         }`;
       request(requestContent, (error, res) => {
