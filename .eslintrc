@@ -30,7 +30,5 @@
   "extends": [
     "eslint:recommended"
   ],
-  "globals": {"Promise": true},
-
-
+  "globals": {"Promise": true}
 }
