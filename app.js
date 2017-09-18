@@ -1,5 +1,7 @@
 const express = require('express');
 const logger = require('morgan');
+const debug = require('tracer').colorConsole({level:'warn'});
+
 const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
 
@@ -51,14 +53,12 @@ module.exports = (config) => {
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
 
-
-
   let app = express();
 
   if (config.node.env != 'pro') {
     app.use(logger('dev'));
   }
-
+  
   app.use ((req, res, next) => {
     req.db = db;
     req.permissionsHandler = permissionsHandler;
@@ -75,7 +75,6 @@ module.exports = (config) => {
       schema: schema,
       graphiql: true,
     }));
-
   }
 
   app.use(jwt(config.authentication));
@@ -84,14 +83,21 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
+  if (config.node.env != 'pro' ) {
+    app.use((req, res, next) => {
+      debug.log('--------------------------------------------------------------------');
+      // debug.log(req.headers);
+      debug.log('user perms:', req.user);
+      debug.log(req.body);
+      next();
+    });
+
+  }
+
   app.post('/graphql', (req, res) => {
 
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
-      if (config.node.env != 'pro' ) {
-        console.log(result);
-      }
-
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
         req.result.errors = err.errors;
@@ -123,29 +129,5 @@ module.exports = (config) => {
   if (config.dataService) {
     config.dataService(db);
   }
-
-
-  //TODO move this into a more sensible place - is a dev req need if we switch to rect relay modern
-  const {
-    buildClientSchema,
-    introspectionQuery,
-    printSchema,
-  } = require('graphql/utilities');
-  let path = __dirname + '/schema.json';
-
-  // Assume your schema is in ../data/schema
-  // const yourSchemaPath = '../data/schema';
-  const fse = require('fs-extra');
-
-  // Save JSON of full schema introspection for Babel Relay Plugin to use
-  graphql(schema, introspectionQuery).then(result => {
-    let data = JSON.stringify(result, null, 2);
-    fse.outputJson(path, data, () => {});
-  });
-
-  fs.writeFileSync(
-    path+'.graphql',
-    printSchema(schema)
-  );
 
 };
