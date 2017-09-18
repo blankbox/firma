@@ -1,4 +1,4 @@
-module.exports = (graphql) => {
+module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
   const GraphQLList = graphql.GraphQLList;
 
@@ -13,7 +13,7 @@ module.exports = (graphql) => {
 
         return new Promise ((resolve, reject) => {
 
-          console.log(root.user);
+          config.debug.log(root.user);
           root.user.mustBeLoggedIn(true);
 
           const permissions = root.user.permissions[info.fieldName];
@@ -22,8 +22,7 @@ module.exports = (graphql) => {
           if (!checkPermissions(permissions, possible)) {
             return reject( new PubErr('LoginError', 'This login cannot be registered, or is already registered.', 403));
           }
-
-
+          
           root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
             if (err) {
               return reject(err);

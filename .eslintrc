@@ -10,7 +10,6 @@
     "promise"
   ],
   "rules": {
-    "no-console": 0,
     "no-var":1,
     "promise/avoid-new": "off",
     "promise/no-native": "off",

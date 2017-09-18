@@ -52,7 +52,6 @@ xdescribe ('Users', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -86,7 +85,6 @@ xdescribe ('Users', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -121,7 +119,6 @@ xdescribe ('Users', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -160,7 +157,6 @@ xdescribe ('Users', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -185,7 +181,6 @@ xdescribe ('Users', () => {
       requestContent.body = 'query {queryUser { user_uid }}';
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -215,10 +210,8 @@ xdescribe ('Users', () => {
             email
           }
         }`;
-        console.log(requestContent);
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
