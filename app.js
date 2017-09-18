@@ -1,6 +1,5 @@
 const express = require('express');
 const logger = require('morgan');
-const debug = require('tracer').colorConsole({level:'warn'});
 
 const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
@@ -14,6 +13,8 @@ const fs = require('fs');
 
 
 module.exports = (config) => {
+
+  const debug = config.debug;
 
   const db = require ('./lib/dbSetup')(config.database);
 
@@ -127,4 +128,21 @@ module.exports = (config) => {
     config.dataService(db);
   }
 
+
+  if (config.returnSchema) {
+    const {
+      introspectionQuery,
+      printSchema,
+    } = require('graphql/utilities');
+    graphql(schema, introspectionQuery).then(result => {
+      config.returnSchema(
+        {
+          json:JSON.stringify(result, null, 2),
+          human:printSchema(schema),
+          schema:schema
+        }
+      );
+    });
+
+  }
 };
