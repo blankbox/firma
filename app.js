@@ -58,7 +58,7 @@ module.exports = (config) => {
   if (config.node.env != 'pro') {
     app.use(logger('dev'));
   }
-  
+
   app.use ((req, res, next) => {
     req.db = db;
     req.permissionsHandler = permissionsHandler;
@@ -83,16 +83,13 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
-  if (config.node.env != 'pro' ) {
-    app.use((req, res, next) => {
-      debug.log('--------------------------------------------------------------------');
-      // debug.log(req.headers);
-      debug.log('user perms:', req.user);
-      debug.log(req.body);
-      next();
-    });
+  app.use((req, res, next) => {
+    debug.log('--------------------------------------------------------------------');
+    debug.log('user perms:', req.user);
+    debug.log(req.body);
+    next();
+  });
 
-  }
 
   app.post('/graphql', (req, res) => {
 
