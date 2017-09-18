@@ -22,7 +22,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
           if (!checkPermissions(permissions, possible)) {
             return reject( new PubErr('LoginError', 'This login cannot be registered, or is already registered.', 403));
           }
-          
+
           root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
             if (err) {
               return reject(err);

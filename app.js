@@ -134,12 +134,12 @@ module.exports = (config) => {
       introspectionQuery,
       printSchema,
     } = require('graphql/utilities');
-    graphql(schema, introspectionQuery).then(result => {
+    graphql(schema, introspectionQuery).then((result) => {
       config.returnSchema(
         {
           json:JSON.stringify(result, null, 2),
           human:printSchema(schema),
-          schema:schema
+          schema
         }
       );
     });
