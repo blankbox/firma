@@ -1,5 +1,6 @@
 const express = require('express');
 const logger = require('morgan');
+
 const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
 
@@ -12,6 +13,8 @@ const fs = require('fs');
 
 
 module.exports = (config) => {
+
+  const debug = config.debug;
 
   const db = require ('./lib/dbSetup')(config.database);
 
@@ -50,6 +53,7 @@ module.exports = (config) => {
   loadRoles(config.routes);
   require('./lib/dbLoader')(config.routes, db);
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
+
   let app = express();
 
   if (config.node.env != 'pro') {
@@ -72,7 +76,6 @@ module.exports = (config) => {
       schema: schema,
       graphiql: true,
     }));
-
   }
 
   app.use(jwt(config.authentication));
@@ -81,25 +84,18 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
-  if (config.node.env != 'pro' ) {
-    app.use((req, res, next) => {
-      console.log('--------------------------------------------------------------------');
-      // console.log(req.headers);
-      console.log('user perms:', req.user);
-      console.log(req.body);
-      next();
-    });
+  app.use((req, res, next) => {
+    debug.log('--------------------------------------------------------------------');
+    debug.log('user perms:', req.user);
+    debug.log(req.body);
+    next();
+  });
 
-  }
 
   app.post('/graphql', (req, res) => {
 
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
-      if (config.node.env != 'pro' ) {
-        console.log(result);
-      }
-
       if (req.result.errors){
         let err = errorHandler.errorHandler(req.result.errors);
         req.result.errors = err.errors;
@@ -132,4 +128,21 @@ module.exports = (config) => {
     config.dataService(db);
   }
 
+
+  if (config.returnSchema) {
+    const {
+      introspectionQuery,
+      printSchema,
+    } = require('graphql/utilities');
+    graphql(schema, introspectionQuery).then((result) => {
+      config.returnSchema(
+        {
+          json:JSON.stringify(result, null, 2),
+          human:printSchema(schema),
+          schema
+        }
+      );
+    });
+
+  }
 };

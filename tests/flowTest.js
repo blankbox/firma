@@ -51,7 +51,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -82,9 +81,7 @@ describe ('Flow', () => {
           }
         }`;
       request(requestContent, (error, res) => {
-        console.log(error);
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -114,7 +111,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -148,7 +144,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -182,7 +177,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -217,7 +211,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -255,7 +248,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -287,7 +279,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -321,7 +312,6 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }

@@ -37,7 +37,6 @@ xdescribe ('Logins', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -71,7 +70,6 @@ xdescribe ('Logins', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -107,7 +105,6 @@ xdescribe ('Logins', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -146,7 +143,6 @@ xdescribe ('Logins', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -171,7 +167,6 @@ xdescribe ('Logins', () => {
       requestContent.body = 'query {queryUser { user_uid }}';
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }
@@ -201,10 +196,8 @@ xdescribe ('Logins', () => {
             email
           }
         }`;
-        console.log(requestContent);
       request(requestContent, (error, res) => {
         if (!error) {
-          console.log(res.body);
           response = res;
           done();
         }

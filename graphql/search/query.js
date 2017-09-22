@@ -1,8 +1,8 @@
 const _ = require ('underscore');
 
-module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => {
+module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
-  const resolvers = searchConf.resolvers;
+  const resolvers = config.search.resolvers;
 
   const checkPermissions = permissionsHandler.checkPermissions;
   const PublicError = errorHandler.PublicError;
@@ -238,7 +238,6 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
               {[resolver.identifier]: db.cassandra.uuidFromString(res.uid)},
               {raw: true}, (err, res) => {
                 if (err) {
-                  console.log(err);
                  return reject( new PrivateError('CassandraError', err, 500));
                 }
                 resolve([res]);

@@ -7,12 +7,12 @@ const lib = require('./mutation/lib');
 const checkEmail = lib.checkEmail;
 
 
-module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => {
+module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
   const PublicError = errorHandler.PublicError;
   const PrivateError = errorHandler.PrivateError;
   const checkPermissions = permissionsHandler.checkPermissions;
-  const resolvers = searchConf.resolvers;
+  const resolvers = config.search.resolvers;
 
   const GraphQLBoolean = graphql.GraphQLBoolean;
   const GraphQLString = graphql.GraphQLString;
@@ -147,8 +147,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
 
               db.cassandra.doBatch(batch, (err) => {
                 if (err) {
-                  console.log(err);
-                  return reject( new PrivateError('CassandraError', 'error saving user', 500));
+                  return reject( new PrivateError('CassandraError', err, 500));
                 } else {
                   root.loginHandler.clearLoginFromCache(root.user.audience, root.user.loginUid);
                   resolve([user]);
@@ -197,7 +196,6 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, searchConf) => 
 
           //SELF or Admin can update email/firsl/last_name
           //Admin only can update blocked
-          // console.log(root);
           const permissions = root.user.permissions[info.fieldName];
           let uid;
           let self;
