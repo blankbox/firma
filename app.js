@@ -70,14 +70,6 @@ module.exports = (config) => {
     next();
   });
 
-
-  if (config.node.env != 'pro') {
-    app.use('/graphiql', require('express-graphql')({
-      schema: schema,
-      graphiql: true,
-    }));
-  }
-
   app.use(jwt(config.authentication));
 
   app.use(bodyParser.text(
@@ -104,6 +96,10 @@ module.exports = (config) => {
         res.send(req.result);
       }
     });
+  });
+
+  app.get('/graphiql', (req, res) => {
+    res.status(200).send('https://gist.githubusercontent.com/sasso/3c3d728e0049d5b66a2c19b349b7f164/raw/829c88b3da1f4798e2665a65eeafddf333287e12/index.html');
   });
 
   app.use(function(req, res, next) {
