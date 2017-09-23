@@ -45,8 +45,6 @@
           'user_token': jwtToken ? `${jwtToken}` : null
         };
       }
-      console.log(headers);
-      console.log(graphQLParams.query);
       return fetch('/graphql', {
         method: 'post',
         headers,
