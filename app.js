@@ -99,7 +99,7 @@ module.exports = (config) => {
   });
 
   app.get('/graphiql', (req, res) => {
-    res.status(200).send('https://gist.githubusercontent.com/sasso/3c3d728e0049d5b66a2c19b349b7f164/raw/829c88b3da1f4798e2665a65eeafddf333287e12/index.html');
+    res.status(200).sendFile(__dirname + '/graphiql/index.html');
   });
 
   app.use(function(req, res, next) {

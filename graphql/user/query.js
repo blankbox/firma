@@ -60,7 +60,7 @@ module.exports = (graphql) => {
       description:'Get user data',
       args:{
         user_uid: {
-          type: new GraphQLNonNull(GraphQLString),
+          type: GraphQLString,
         }
       },
       resolve: (root, args) => {
@@ -72,7 +72,7 @@ module.exports = (graphql) => {
         return new Promise ((resolve, reject) =>{
 
           const permissions = root.user.permissions['findUser'];
-          let possible = ['ALL', String(root.user.userUid)];
+          let possible = ['ALL', (args.user_uid || String(root.user.userUid))];
           let perms = checkPermissions(permissions, possible);
 
           if (!perms) {
@@ -80,7 +80,7 @@ module.exports = (graphql) => {
           }
 
           db.cassandra.instance.UserProfile.findOne(
-            {user_uid:Uuid.fromString(args.user_uid)},
+            {user_uid:Uuid.fromString(args.user_uid || root.user.userUid)},
             (err, user) => {
             if (err) {
               reject( new PrivateError('CassandraError', String(err), 500));

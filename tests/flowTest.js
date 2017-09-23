@@ -80,6 +80,7 @@ describe ('Flow', () => {
             permissions
           }
         }`;
+        console.log(user_token);
       request(requestContent, (error, res) => {
         if (!error) {
           response = res;
@@ -175,6 +176,7 @@ describe ('Flow', () => {
             user_uid
           }
         }`;
+        console.log(requestContent.body);
       request(requestContent, (error, res) => {
         if (!error) {
           response = res;
