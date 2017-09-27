@@ -1,4 +1,4 @@
-module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
+module.exports = (graphql, db, errorHandler, permissionsHandler) => {
 
   const GraphQLList = graphql.GraphQLList;
 
@@ -8,13 +8,11 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       type: new GraphQLList(LoginType),
       description: 'Add a login',
       resolve: (root, args, ast , info) => {
-        const checkPermissions = root.permissionsHandler.checkPermissions;
-        const PubErr = root.errorHandler.PublicError;
+        const checkPermissions = permissionsHandler.checkPermissions;
+        const PubErr = errorHandler.PublicError;
 
         return new Promise ((resolve, reject) => {
-
-          config.debug.log(root.user);
-          root.user.mustBeLoggedIn(true);
+          root.user.mustBeLoggedIn(true, reject);
 
           const permissions = root.user.permissions[info.fieldName];
           let possible = [String(root.user.loginUid), 'ALL'];
