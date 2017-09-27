@@ -62,9 +62,9 @@ module.exports = (config) => {
     req.db = db;
     req.permissionsHandler = permissionsHandler;
     req.errorHandler = errorHandler;
-    req.user = userHandler();
-    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
     req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
+    req.user = userHandler(req.loginHandler, req.permissionsHandler);
+    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
     next();
   });
 
@@ -74,8 +74,15 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
-  app.post('/graphql', (req, res) => {
 
+  app.use((req, res, next) => {
+    debug.debug('---------------------------------------------------------');
+    debug.debug('user perms:', req.user);
+    debug.debug(req.body);
+    next();
+  });
+
+  app.post('/graphql', (req, res) => {
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
       let status = 200;
@@ -121,9 +128,9 @@ module.exports = (config) => {
     socket.db = db;
     socket.permissionsHandler = permissionsHandler;
     socket.errorHandler = errorHandler;
-    socket.user = userHandler();
-    socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
     socket.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
+    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler);
+    socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
 
     socket
 
@@ -152,10 +159,14 @@ module.exports = (config) => {
       });
     });
 
+
+
+  }).on('error', (err) => {
+    debug.error(err);
   });
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
-  //
+
   if (config.dataService) {
     config.dataService(db);
   }

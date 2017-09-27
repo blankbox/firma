@@ -82,6 +82,7 @@ describe ('Flow', () => {
         }`;
       request(requestContent, (error, res) => {
         if (!error) {
+          console.log(res.body);
           response = res;
           done();
         }
