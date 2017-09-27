@@ -77,15 +77,14 @@ module.exports = (config) => {
   ));
 
   app.use((req, res, next) => {
-    debug.log('--------------------------------------------------------------------');
-    debug.log('user perms:', req.user);
-    debug.log(req.body);
+    debug.debug('---------------------------------------------------------');
+    debug.debug('user perms:', req.user);
+    debug.debug(req.body);
     next();
   });
 
 
   app.post('/graphql', (req, res) => {
-
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
       if (req.result.errors){
@@ -119,7 +118,7 @@ module.exports = (config) => {
 
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
-  //
+
   if (config.dataService) {
     config.dataService(db);
   }

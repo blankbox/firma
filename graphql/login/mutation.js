@@ -13,7 +13,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
         return new Promise ((resolve, reject) => {
 
-          config.debug.log(root.user);
+          config.debug.debug(root.user);
           root.user.mustBeLoggedIn(true);
 
           const permissions = root.user.permissions[info.fieldName];
