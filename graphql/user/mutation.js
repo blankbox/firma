@@ -41,16 +41,17 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       },
       resolve: (root, args, ast, info) => {
 
-
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true);
-          root.user.mustBeUser(false);
+          root.user.getPermissionsAndUser(() => {
+
+          root.user.mustBeLoggedIn(true, reject);
+          root.user.mustBeUser(false, reject);
 
           const permissions = root.user.permissions[info.fieldName];
           let possible = [String(root.user.loginUid), 'ALL'];
 
           if (!checkPermissions(permissions, possible)) {
-            return reject( new PublicError('LoginError', '', 403));
+            return reject( new PublicError('LoginError', 'You cannot create a user', 403));
           }
 
           checkEmail (root, args, (err, user) => {
@@ -149,7 +150,9 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
                 if (err) {
                   return reject( new PrivateError('CassandraError', err, 500));
                 } else {
+
                   root.loginHandler.clearLoginFromCache(root.user.audience, root.user.loginUid);
+
                   resolve([user]);
 
                   let resolver = _.find(resolvers, (s) => {
@@ -161,6 +164,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
               });
             }
           });
+        }, reject);
         });
       }
     },
@@ -191,12 +195,15 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, discard, info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true);
-          root.user.mustBeUser(true);
+          root.user.getPermissionsAndUser(() => {
+
+          root.user.mustBeLoggedIn(true, reject);
+          root.user.mustBeUser(true, reject);
 
           //SELF or Admin can update email/firsl/last_name
           //Admin only can update blocked
           const permissions = root.user.permissions[info.fieldName];
+
           let uid;
           let self;
 
@@ -256,6 +263,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
                 });
               }
            });
+        });
         });
       }
     },

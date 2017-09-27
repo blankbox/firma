@@ -16,7 +16,6 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
 
           const permissions = root.user.permissions[info.fieldName];
           let possible = [String(root.user.loginUid), 'ALL'];
-
           if (!checkPermissions(permissions, possible)) {
             return reject( new PubErr('LoginError', 'This login cannot be registered, or is already registered.', 403));
           }

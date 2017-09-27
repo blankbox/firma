@@ -7,13 +7,16 @@ const uuid = require('uuid/v1');
 let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
 let audience = 'vybe_dev';
 let user_token;
+let email;
 
 jwt.sign({ foo: 'bar' }, cert,  {
   audience:audience,
   subject:audience +':' + uuid(),
   expiresIn: '1h'
 }, function(err, token) {
+  console.log(token);
   user_token = token;
+  email = user_token.slice(-8) + '@foo.bar';
 });
 
 const socketCluster = require('socketcluster-client');
@@ -49,14 +52,30 @@ socket.on('connect', (status) => {
       if (err) {
         console.log(err);
       } else {
+        console.log(email);
         socketRequest(
           `mutation {
+            createUser (
+              email:"` + email + `"
+            ) {
+              email,
+              user_uid
+            },
             registerLogin {
               login_uid
-            }
+            },
+            updateUser (
+             first_name: "Bob"
+             last_name:"TEST"
+           ) {
+             first_name,
+             last_name
+           }
           }`,
-          (result) => {
-            console.log(result.data.registerLogin[0]);
+           (result) => {
+            console.log(result.data);
+            console.log(result.errors);
+
           }
         );
       }
