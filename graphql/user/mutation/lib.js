@@ -9,13 +9,13 @@ const checkPassword = (root, args, user, cb) => {
     }
   });
 };
+
 const hashPassword = (root, args, user, cb) => {
   bcrypt.genSalt(1, (err, salt) => {
     if (err) {
       cb( new root.errorHandler.PrivateError('BcryptError', 'error generating salt', 500));
     } else {
       bcrypt.hash(args.password, salt, (err, hash) => {
-
         if (err) {
           cb( new root.errorHandler.PrivateError('BcryptError', 'error hashing password', 500));
         } else {
@@ -26,6 +26,7 @@ const hashPassword = (root, args, user, cb) => {
     }
   });
 };
+
 const checkEmail = (root, args, cb) => {
   root.db.cassandra.instance.UserProfile.findOne(
     {email:args.email},

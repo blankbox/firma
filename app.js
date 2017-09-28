@@ -51,7 +51,7 @@ module.exports = (config) => {
   };
 
   loadRoles(config.routes);
-  require('./lib/dbLoader')(config.routes, db);
+  require('./lib/dbLoader')(config, db);
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
 
   let app = express();
@@ -164,7 +164,7 @@ module.exports = (config) => {
     debug.error(err);
   });
 
-  
+
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
 
