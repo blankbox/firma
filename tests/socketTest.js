@@ -55,14 +55,14 @@ socket.on('connect', (status) => {
         console.log(email);
         socketRequest(
           `mutation {
+            registerLogin {
+              login_uid
+            },
             createUser (
               email:"` + email + `"
             ) {
               email,
               user_uid
-            },
-            registerLogin {
-              login_uid
             },
             updateUser (
              first_name: "Bob"

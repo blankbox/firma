@@ -125,6 +125,7 @@ module.exports = (config) => {
   const scServer = socketClusterServer.attach(server);
 
   scServer.on('connection', (socket) => {
+
     socket.db = db;
     socket.permissionsHandler = permissionsHandler;
     socket.errorHandler = errorHandler;
@@ -159,11 +160,11 @@ module.exports = (config) => {
       });
     });
 
-
-
   }).on('error', (err) => {
     debug.error(err);
   });
+
+  
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
 

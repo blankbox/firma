@@ -1,4 +1,6 @@
 module.exports = (graphql, db, errorHandler, permissionsHandler) => {
+  const checkPermissions = permissionsHandler.checkPermissions;
+  const PubErr = errorHandler.PublicError;
 
   const GraphQLList = graphql.GraphQLList;
 
@@ -8,8 +10,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
       type: new GraphQLList(LoginType),
       description: 'Add a login',
       resolve: (root, args, ast , info) => {
-        const checkPermissions = permissionsHandler.checkPermissions;
-        const PubErr = errorHandler.PublicError;
+
 
         return new Promise ((resolve, reject) => {
           root.user.mustBeLoggedIn(true, reject);
