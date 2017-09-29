@@ -13,23 +13,26 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
 
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true, reject);
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = [String(root.user.loginUid), 'ALL'];
-          if (!checkPermissions(permissions, possible)) {
-            return reject( new PubErr('LoginError', 'This login cannot be registered, or is already registered.', 403));
-          }
+          root.user.getPermissionsAndUser(() => {
 
-          root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
-            if (err) {
-              return reject(err);
+            root.user.mustBeLoggedIn(true, reject);
+
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = [String(root.user.loginUid), 'ALL'];
+            if (!checkPermissions(permissions, possible)) {
+              return reject( new PubErr('LoginError', 'This login cannot be registered, or is already registered.', 403));
             }
-            resolve([login]);
+
+            root.loginHandler.registerLogin(root.user.audience, root.user.loginUid, (err, login) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve([login]);
+            });
           });
         });
       }
     }
-
   };
 };
