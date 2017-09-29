@@ -14,7 +14,6 @@ jwt.sign({ foo: 'bar' }, cert,  {
   subject:audience +':' + uuid(),
   expiresIn: '1h'
 }, function(err, token) {
-  console.log(token);
   user_token = token;
   email = user_token.slice(-8) + '@foo.bar';
 });
@@ -50,9 +49,8 @@ socket.on('connect', (status) => {
 
     socket.emit('login', {headers:{user_token}}, (err) => {
       if (err) {
-        console.log(err);
+        // Do something
       } else {
-        console.log(email);
         socketRequest(
           `mutation {
             registerLogin {
@@ -73,8 +71,11 @@ socket.on('connect', (status) => {
            }
           }`,
            (result) => {
-            console.log(result.data);
-            console.log(result.errors);
+
+            process.stdout.write(JSON.stringify(result.data));
+            if(result.errors) {
+              process.stdout.write(JSON.stringify(result.errors));
+            }
 
           }
         );
