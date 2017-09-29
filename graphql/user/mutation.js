@@ -39,8 +39,8 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast, info) => {
 
         return new Promise ((resolve, reject) => {
+          root.user.mustBeLoggedIn(true, reject);
           root.user.getPermissionsAndUser(() => {
-            root.user.mustBeLoggedIn(true, reject);
             root.user.mustBeUser(false, reject);
 
             const permissions = root.user.permissions[info.fieldName];
@@ -275,7 +275,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
         }
       },
       resolve: (root, args, ast, info) => {
-      
+
         return new Promise ((resolve, reject) => {
           root.user.getPermissionsAndUser(() => {
 
