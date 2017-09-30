@@ -16,7 +16,7 @@ module.exports = (config) => {
 
   const debug = config.debug;
 
-  const db = require ('./lib/dbSetup')(config.database);
+  const db = require ('./lib/dbSetup')(debug, config.database );
 
   config.routes.push(
     {
@@ -55,18 +55,16 @@ module.exports = (config) => {
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
 
   let app = express();
+  app.use(logger('short'));
 
-  if (config.node.env != 'pro') {
-    app.use(logger('dev'));
-  }
 
   app.use ((req, res, next) => {
     req.db = db;
     req.permissionsHandler = permissionsHandler;
     req.errorHandler = errorHandler;
-    req.user = userHandler();
-    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
     req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
+    req.user = userHandler(req.loginHandler, req.permissionsHandler, config);
+    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
     next();
   });
 
@@ -76,25 +74,26 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
+
   app.use((req, res, next) => {
-    debug.log('--------------------------------------------------------------------');
-    debug.log('user perms:', req.user);
-    debug.log(req.body);
+    debug.debug('---------------------------------------------------------');
+    debug.debug('user perms:', req.user);
+    debug.debug(req.body);
     next();
   });
 
-
   app.post('/graphql', (req, res) => {
-
     graphql(schema, req.body,  req).then(result => {
       req.result = result;
-      if (req.result.errors){
-        let err = errorHandler.errorHandler(req.result.errors);
-        req.result.errors = err.errors;
-        res.status(err.status || 400).json(req.result);
-      } else {
-        res.send(req.result);
+      let status = 200;
+
+      if (result.errors){
+        let err = errorHandler.errorHandler(result.errors);
+        result.errors = err.errors;
+        status = err.status;
       }
+
+      res.status(status).json(result);
     });
   });
 
@@ -102,24 +101,72 @@ module.exports = (config) => {
     res.status(200).sendFile(__dirname + '/graphiql/index.html');
   });
 
-  app.use(function(req, res, next) {
+  app.use((req, res) => {
     let err = new Error('Not Found');
     err.status = 404;
     res.status(err.status).send('Not Found');
-    next(err);
   });
+
+  let server;
 
   if (config.https) {
     const https = require('https');
-    https.createServer({cert: config.https.cert, key: config.https.key}, app).listen(config.https.port);
+    server = https.createServer({cert: config.https.cert, key: config.https.key}, app);
+    server.listen(config.https.port);
   } else {
     const http = require('http');
-    http.createServer(app).listen(config.http.port);
+    server = http.createServer(app);
+    server.listen(config.http.port);
   }
+
+  const socketClusterServer = require('socketcluster-server');
+
+  const scServer = socketClusterServer.attach(server);
+
+  scServer.on('connection', (socket) => {
+
+    socket.db = db;
+    socket.permissionsHandler = permissionsHandler;
+    socket.errorHandler = errorHandler;
+    socket.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
+    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler, config);
+    socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
+
+    socket
+
+    .on('login', (req,  res) => {
+      socket.headers = req.headers;
+      jwt(config.authentication)(socket, null, () => {
+        if (socket.user.loginUid) {
+          socket.setAuthToken({loginUid: socket.user.loginUid, aud: socket.user.audience});
+          return res();
+        } else {
+          return res(socket.user.error);
+        }
+      });
+    })
+
+    .on('graphql', (req, res) => {
+
+      graphql(schema, req.body,  socket).then(result => {
+        req.result = result;
+        let err = null;
+        if (result.errors){
+          let err = errorHandler.errorHandler(result.errors);
+          result.errors = err.errors;
+        }
+        res(err, result);
+      });
+    });
+
+  }).on('error', (err) => {
+    debug.error(err);
+  });
+
 
   //API to allow direct access to the database instances from the consuming
   //application - intented to allow use of redis as a messenger, and data import/export
-  //
+
   if (config.dataService) {
     config.dataService(db);
   }

@@ -69,56 +69,59 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast , info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeUser(true);
+
+          root.user.getPermissionsAndUser(() => {
+
+            root.user.mustBeUser(true);
 
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = _.flatten(['ALL', root.user.userUid]);
-          if (!checkPermissions(permissions, possible)) {
-            return reject( new PublicError('SearchError', 'You cannot search by text', 403));
-          }
-
-          redisRecursions = 0;
-          redisIterator(0, '*:' + args.text, [], (err, res) => {
-
-            let data = {};
-            let results = [];
-            for (let i = 1; i < res.length; i +=2) {
-              results.push(res[i]);
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = _.flatten(['ALL', root.user.userUid]);
+            if (!checkPermissions(permissions, possible)) {
+              return reject( new PublicError('SearchError', 'You cannot search by text', 403));
             }
 
-            for (let rj of results) {
-              let r = JSON.parse(rj);
+            redisRecursions = 0;
+            redisIterator(0, '*:' + args.text, [], (err, res) => {
 
-              if (!data[r.type]){
-                data[r.type] = {
-                  uids:[],
-                  resolver: _.find(resolvers, (s) => {
-                    return s.schema == r.type;
-                  })
-                };
+              let data = {};
+              let results = [];
+              for (let i = 1; i < res.length; i +=2) {
+                results.push(res[i]);
               }
-              data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
-            }
 
-            let dataIn = [];
-            for (let o of Object.keys(data)) {
-              dataIn.push(data[o]);
-            }
-            cassandraIterator(root.user, dataIn, [], (dataOut) => {
-              let out = dataOut.map(a => a.results);
-              let err = dataOut.map(a => a.err);
-              if (err) {
-                for (let e of err) {
-                  if (typeof(e) != 'undefined') {
-                    new PrivateError('CassandraError', err, 500);
+              for (let rj of results) {
+                let r = JSON.parse(rj);
+
+                if (!data[r.type]){
+                  data[r.type] = {
+                    uids:[],
+                    resolver: _.find(resolvers, (s) => {
+                      return s.schema == r.type;
+                    })
+                  };
+                }
+                data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
+              }
+
+              let dataIn = [];
+              for (let o of Object.keys(data)) {
+                dataIn.push(data[o]);
+              }
+              cassandraIterator(root.user, dataIn, [], (dataOut) => {
+                let out = dataOut.map(a => a.results);
+                let err = dataOut.map(a => a.err);
+                if (err) {
+                  for (let e of err) {
+                    if (typeof(e) != 'undefined') {
+                      new PrivateError('CassandraError', err, 500);
+                    }
                   }
                 }
-              }
-              return resolve(_.flatten(out));
+                return resolve(_.flatten(out));
+              });
             });
           });
-
         });
       }
     },
@@ -146,47 +149,50 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast , info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeUser(true);
+          root.user.getPermissionsAndUser(() => {
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = _.flatten(['ALL']);
-          if (!checkPermissions(permissions, possible)) {
-            return reject( new PublicError('VenueError', 'You cannot read these rooms', 403));
-          }
+            root.user.mustBeUser(true);
 
-          db.redis.GEORADIUS('geo_hash', args.long, args.lat, args.radius, 'mi', (err, res) => {
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = _.flatten(['ALL']);
+            if (!checkPermissions(permissions, possible)) {
+              return reject( new PublicError('VenueError', 'You cannot read these rooms', 403));
+            }
 
-            let data = {};
-            for (let rj of res) {
-              let r = JSON.parse(rj);
-              if (!data[r.type]){
-                data[r.type] = {
-                  uids:[],
-                  resolver: _.find(resolvers, (s) => {
-                    return s.schema == r.type;
-                  })
-                };
+            db.redis.GEORADIUS('geo_hash', args.long, args.lat, args.radius, 'mi', (err, res) => {
+
+              let data = {};
+              for (let rj of res) {
+                let r = JSON.parse(rj);
+                if (!data[r.type]){
+                  data[r.type] = {
+                    uids:[],
+                    resolver: _.find(resolvers, (s) => {
+                      return s.schema == r.type;
+                    })
+                  };
+                }
+                data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
               }
-              data[r.type].uids.push(db.cassandra.uuidFromString(r.uid));
-            }
 
-            let dataIn = [];
-            for (let o of Object.keys(data)) {
-              dataIn.push(data[o]);
-            }
+              let dataIn = [];
+              for (let o of Object.keys(data)) {
+                dataIn.push(data[o]);
+              }
 
-            cassandraIterator(root.user, dataIn, [], (dataOut) => {
-              let out = dataOut.map(a => a.results);
-              let err = dataOut.map(a => a.err);
-              if (err) {
-                for (let e of err) {
-                  if (typeof(e) != 'undefined') {
-                    //TODO workout how to capture these
-                    // new PrivateError('CassandraError', err, 500);
+              cassandraIterator(root.user, dataIn, [], (dataOut) => {
+                let out = dataOut.map(a => a.results);
+                let err = dataOut.map(a => a.err);
+                if (err) {
+                  for (let e of err) {
+                    if (typeof(e) != 'undefined') {
+                      //TODO workout how to capture these
+                      // new PrivateError('CassandraError', err, 500);
+                    }
                   }
                 }
-              }
-              return resolve(_.flatten(out));
+                return resolve(_.flatten(out));
+              });
             });
           });
         });
@@ -205,50 +211,50 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast , info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeUser(true);
+          root.user.getPermissionsAndUser(() => {
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = _.flatten(['ALL', args.uid]);
+            root.user.mustBeUser(true);
 
-          if (!checkPermissions(permissions, possible)) {
-            return reject( new PublicError('SearchError', 'You cannot find this', 403));
-          }
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = _.flatten(['ALL', args.uid]);
 
-          redisIterator(0, args.uid + ':*', [], (err, result) => {
-
-            if (err) {
-              return reject( new PrivateError('SearchError', err, 500));
-            }
-            if (!result.length) {
-              return resolve([]);
-            }
-            let res = JSON.parse(result[1]);
-            let type = res.type;
-            let resolver = _.find(resolvers, (s) => {
-              return s.schema == type;
-            });
-
-            if (!resolver.hasPermission(root.user, checkPermissions,
-              {[resolver.identifier]: res.uid}
-            )){
+            if (!checkPermissions(permissions, possible)) {
               return reject( new PublicError('SearchError', 'You cannot find this', 403));
             }
 
-            db.cassandra.instance[resolver.cassandra_model].findOne(
-              {[resolver.identifier]: db.cassandra.uuidFromString(res.uid)},
-              {raw: true}, (err, res) => {
-                if (err) {
-                 return reject( new PrivateError('CassandraError', err, 500));
-                }
-                resolve([res]);
+            redisIterator(0, args.uid + ':*', [], (err, result) => {
+
+              if (err) {
+                return reject( new PrivateError('SearchError', err, 500));
               }
-            );
+              if (!result.length) {
+                return resolve([]);
+              }
+              let res = JSON.parse(result[1]);
+              let type = res.type;
+              let resolver = _.find(resolvers, (s) => {
+                return s.schema == type;
+              });
 
+              if (!resolver.hasPermission(root.user, checkPermissions,
+                {[resolver.identifier]: res.uid}
+              )){
+                return reject( new PublicError('SearchError', 'You cannot find this', 403));
+              }
+
+              db.cassandra.instance[resolver.cassandra_model].findOne(
+                {[resolver.identifier]: db.cassandra.uuidFromString(res.uid)},
+                {raw: true}, (err, res) => {
+                  if (err) {
+                   return reject( new PrivateError('CassandraError', err, 500));
+                  }
+                  resolve([res]);
+                }
+              );
+            });
           });
-
         });
       }
     },
-
   };
 };

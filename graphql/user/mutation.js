@@ -1,8 +1,5 @@
 const _ = require ('underscore');
 
-const Uuid = require('cassandra-driver').types.Uuid;
-
-
 const lib = require('./mutation/lib');
 const checkEmail = lib.checkEmail;
 
@@ -19,7 +16,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
-  const UserType = graphql.schema.user;//require ('./schema')(graphql);
+  const UserType = graphql.schema.user;
 
   return {
     createUser:{
@@ -41,125 +38,127 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       },
       resolve: (root, args, ast, info) => {
 
-
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true);
-          root.user.mustBeUser(false);
+          root.user.mustBeLoggedIn(true, reject);
+          root.user.getPermissionsAndUser(() => {
+            root.user.mustBeUser(false, reject);
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = [String(root.user.loginUid), 'ALL'];
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = [String(root.user.loginUid), 'ALL'];
 
-          if (!checkPermissions(permissions, possible)) {
-            return reject( new PublicError('LoginError', '', 403));
-          }
-
-          checkEmail (root, args, (err, user) => {
-            if (err || user) {
-              return reject(err || new PublicError('UserError', 'Email address in use', 403));
-            } else {
-              let userUid = Uuid.random();
-
-
-              let login = {};
-
-              login[root.user.loginUid] = root.user.audience;
-
-              let user = new db.cassandra.instance.UserProfile({
-                first_name:args.first_name,
-                last_name:args.last_name,
-                email:args.email,
-                user_uid: userUid,
-                login_uid: login
-              });
-
-              let updateLogin = db.cassandra.instance.Login.update(
-                {audience:root.user.audience, login_uid:root.user.loginUid},
-                {user_uid:userUid},
-                {return_query: true}
-              );
-
-              let updateUserPermissions = db.cassandra.instance.Permissions.update(
-                {
-                  login_uid: root.user.loginUid,
-                  audience: root.user.audience,
-                  entity_uid: String(userUid)
-                },
-                {
-                  roles:{
-                    '$add': ['this_user']
-                  }
-                },
-                {return_query: true}
-              );
-
-              let updateAllPermissions = db.cassandra.instance.Permissions.update(
-                {
-                  login_uid: root.user.loginUid,
-                  audience: root.user.audience,
-                  entity_uid: 'ALL'
-                },
-                {
-                  roles:{
-                    '$add': ['loggedInUser']
-                  }
-                },
-                {return_query: true}
-              );
-
-              let removeLoginPermissions = db.cassandra.instance.Permissions.update(
-                {
-                  login_uid: root.user.loginUid,
-                  audience: root.user.audience,
-                  entity_uid: String(root.user.loginUid)
-                },
-                {
-                  roles:{
-                    '$remove': ['newLogin']
-                  }
-                },
-                {return_query: true}
-              );
-
-              let addLoginPermissions = db.cassandra.instance.Permissions.update(
-                {
-                  login_uid: root.user.loginUid,
-                  audience: root.user.audience,
-                  entity_uid: String(root.user.loginUid)
-                },
-                {
-                  roles:{
-                    '$add': ['this_user']
-                  }
-                },
-                {return_query: true}
-              );
-
-              let batch = [
-                user.save(
-                  {return_query: true}
-                ),
-                updateLogin,
-                updateUserPermissions,
-                addLoginPermissions,
-                removeLoginPermissions,
-                updateAllPermissions
-              ];
-
-              db.cassandra.doBatch(batch, (err) => {
-                if (err) {
-                  return reject( new PrivateError('CassandraError', err, 500));
-                } else {
-                  root.loginHandler.clearLoginFromCache(root.user.audience, root.user.loginUid);
-                  resolve([user]);
-
-                  let resolver = _.find(resolvers, (s) => {
-                    return s.schema == 'user';
-                  });
-
-                  resolver.addMembers(db, [userUid]);
-                }
-              });
+            if (!checkPermissions(permissions, possible)) {
+              return reject( new PublicError('LoginError', 'You cannot create a user', 403));
             }
+
+            checkEmail (root, args, (err, user) => {
+              if (err || user) {
+                return reject(err || new PublicError('UserError', 'Email address in use', 403));
+              } else {
+                let userUid = db.cassandra.uuid();
+
+                let login = {};
+
+                login[root.user.loginUid] = root.user.audience;
+
+                let user = new db.cassandra.instance.UserProfile({
+                  first_name:args.first_name,
+                  last_name:args.last_name,
+                  email:args.email,
+                  user_uid: userUid,
+                  login_uid: login
+                });
+
+                let updateLogin = db.cassandra.instance.Login.update(
+                  {audience:root.user.audience, login_uid:root.user.loginUid},
+                  {user_uid:userUid},
+                  {return_query: true}
+                );
+
+                let updateUserPermissions = db.cassandra.instance.Permissions.update(
+                  {
+                    login_uid: root.user.loginUid,
+                    audience: root.user.audience,
+                    entity_uid: String(userUid)
+                  },
+                  {
+                    roles:{
+                      '$add': ['this_user']
+                    }
+                  },
+                  {return_query: true}
+                );
+
+                let updateAllPermissions = db.cassandra.instance.Permissions.update(
+                  {
+                    login_uid: root.user.loginUid,
+                    audience: root.user.audience,
+                    entity_uid: 'ALL'
+                  },
+                  {
+                    roles:{
+                      '$add': ['loggedInUser']
+                    }
+                  },
+                  {return_query: true}
+                );
+
+                let removeLoginPermissions = db.cassandra.instance.Permissions.update(
+                  {
+                    login_uid: root.user.loginUid,
+                    audience: root.user.audience,
+                    entity_uid: String(root.user.loginUid)
+                  },
+                  {
+                    roles:{
+                      '$remove': ['newLogin']
+                    }
+                  },
+                  {return_query: true}
+                );
+
+                let addLoginPermissions = db.cassandra.instance.Permissions.update(
+                  {
+                    login_uid: root.user.loginUid,
+                    audience: root.user.audience,
+                    entity_uid: String(root.user.loginUid)
+                  },
+                  {
+                    roles:{
+                      '$add': ['this_user']
+                    }
+                  },
+                  {return_query: true}
+                );
+
+                let batch = [
+                  user.save(
+                    {return_query: true}
+                  ),
+                  updateLogin,
+                  updateUserPermissions,
+                  addLoginPermissions,
+                  removeLoginPermissions,
+                  updateAllPermissions
+                ];
+
+                db.cassandra.doBatch(batch, (err) => {
+                  if (err) {
+                    return reject( new PrivateError('CassandraError', err, 500));
+                  } else {
+
+                    root.loginHandler.clearLoginFromCache(root.user.audience, root.user.loginUid);
+
+                    resolve([user]);
+
+                    let resolver = _.find(resolvers, (s) => {
+                      return s.schema == 'user';
+                    });
+
+                    resolver.addMembers(db, [userUid]);
+                  }
+                });
+              }
+            });
           });
         });
       }
@@ -191,71 +190,75 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, discard, info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true);
-          root.user.mustBeUser(true);
+          root.user.getPermissionsAndUser(() => {
 
-          //SELF or Admin can update email/firsl/last_name
-          //Admin only can update blocked
-          const permissions = root.user.permissions[info.fieldName];
-          let uid;
-          let self;
+            root.user.mustBeLoggedIn(true, reject);
+            root.user.mustBeUser(true, reject);
 
-          if (!args.user_uid || args.user_uid == root.user.userUid) {
-            uid = root.user.userUid;
-            self = true;
-          } else {
-            uid = args.user_uid;
-          }
+            //SELF or Admin can update email/firsl/last_name
+            //Admin only can update blocked
+            const permissions = root.user.permissions[info.fieldName];
 
-          let possible = [String(uid), 'ALL'];
-          let perms = checkPermissions(permissions, possible);
+            let uid;
+            let self;
 
-          if (!perms) {
-            return reject( new PublicError('UserError', '', 403));
-          }
+            if (!args.user_uid || args.user_uid == root.user.userUid) {
+              uid = root.user.userUid;
+              self = true;
+            } else {
+              uid = args.user_uid;
+            }
 
-          if (self) {
-            let allowed = ['email', 'first_name', 'last_name', 'private'];
-            if (_.difference(Object.keys(args), allowed).length > 0){
+            let possible = [String(uid), 'ALL'];
+            let perms = checkPermissions(permissions, possible);
+
+            if (!perms) {
               return reject( new PublicError('UserError', '', 403));
             }
-          }
 
-          let update = {};
-
-          const updateFields = ['first_name', 'last_name', 'blocked', 'email', 'private'];
-          for (let k of updateFields) {
-            if (typeof(args[k]) != 'undefined') {
-              update[k] = args[k];
-            }
-          }
-
-          let updateUser = db.cassandra.instance.UserProfile.update(
-            {user_uid: Uuid.fromString(uid)},
-            update,
-            {return_query: true}
-          );
-
-          db.cassandra.doBatch(
-            [updateUser],
-            (err) => {
-              if (err) {
-               return reject( new PrivateError('CassandraError', 'error update user', 500));
-              } else {
-                db.cassandra.instance.UserProfile.findOne({user_uid: Uuid.fromString(uid)}, (err, user) => {
-                  if (err || !user) {
-                   return reject( new PrivateError('CassandraError', 'error reading user', 500));
-                  } else {
-                    let resolver = _.find(resolvers, (s) => {
-                      return s.schema == 'user';
-                    });
-
-                    resolve([user]);
-                    resolver.addMembers(db, [args.user_uid]);
-                  }
-                });
+            if (self) {
+              let allowed = ['email', 'first_name', 'last_name', 'private'];
+              if (_.difference(Object.keys(args), allowed).length > 0){
+                return reject( new PublicError('UserError', '', 403));
               }
-           });
+            }
+
+            let update = {};
+
+            const updateFields = ['first_name', 'last_name', 'blocked', 'email', 'private'];
+            for (let k of updateFields) {
+              if (typeof(args[k]) != 'undefined') {
+                update[k] = args[k];
+              }
+            }
+
+            let updateUser = db.cassandra.instance.UserProfile.update(
+              {user_uid: db.cassandra.uuidFromString(uid)},
+              update,
+              {return_query: true}
+            );
+
+            db.cassandra.doBatch(
+              [updateUser],
+              (err) => {
+                if (err) {
+                 return reject( new PrivateError('CassandraError', 'error update user', 500));
+                } else {
+                  db.cassandra.instance.UserProfile.findOne({user_uid:db.cassandra.uuidFromString(uid)}, (err, user) => {
+                    if (err || !user) {
+                     return reject( new PrivateError('CassandraError', 'error reading user', 500));
+                    } else {
+                      let resolver = _.find(resolvers, (s) => {
+                        return s.schema == 'user';
+                      });
+
+                      resolve([user]);
+                      resolver.addMembers(db, [args.user_uid]);
+                    }
+                  });
+                }
+             });
+          });
         });
       }
     },
@@ -272,38 +275,34 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
         }
       },
       resolve: (root, args, ast, info) => {
-        const db = root.db;
-        const PublicError = root.errorHandler.PublicError;
-        const PrivateError = root.errorHandler.PrivateError;
-        const checkPermissions = root.permissionsHandler.checkPermissions;
 
         return new Promise ((resolve, reject) => {
+          root.user.getPermissionsAndUser(() => {
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = [String(args.user_uid), 'ALL'];
-          let perms = checkPermissions(permissions, possible);
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = [String(args.user_uid), 'ALL'];
+            let perms = checkPermissions(permissions, possible);
 
-          if (!perms) {
-            return reject( new PublicError('UserError', '', 403));
-          }
-
-          db.cassandra.instance.UserProfile.update(
-            {user_uid: Uuid.fromString(args.user_uid)},
-            {deleted: true},
-            (err) => {
-            if (err) {
-              reject(new PrivateError('CassandraError', err, 500));
-            } else {
-              db.cassandra.instance.UserProfile.findOne({user_uid: Uuid.fromString(args.user_uid)}, (err, user) => {
-                if (err || !user) {
-                 return reject( new PrivateError('CassandraError', 'error reading user', 500));
-                } else {
-
-                  resolve([user]);
-
-                }
-              });
+            if (!perms) {
+              return reject( new PublicError('UserError', '', 403));
             }
+
+            db.cassandra.instance.UserProfile.update(
+              {user_uid: db.cassandra.uuidFromString(args.user_uid)},
+              {deleted: true},
+              (err) => {
+              if (err) {
+                reject(new PrivateError('CassandraError', err, 500));
+              } else {
+                db.cassandra.instance.UserProfile.findOne({user_uid: db.cassandra.uuidFromString(args.user_uid)}, (err, user) => {
+                  if (err || !user) {
+                   return reject( new PrivateError('CassandraError', 'error reading user', 500));
+                  } else {
+                    resolve([user]);
+                  }
+                });
+              }
+            });
           });
         });
       }
