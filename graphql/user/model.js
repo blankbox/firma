@@ -19,6 +19,7 @@ module.exports = [
           typeDef: '<text, text>'
         }
       },
+      table_name:'user_profile',
       key:['user_uid'],
       materialized_views: {
         user_by_email: {
