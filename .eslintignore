@@ -8,3 +8,5 @@ vybe_test*
 
 .nyc*
 coverage*
+
+yarn*

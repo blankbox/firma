@@ -39,8 +39,8 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast, info) => {
 
         return new Promise ((resolve, reject) => {
+          root.user.mustBeLoggedIn(true, reject);
           root.user.getPermissionsAndUser(() => {
-            root.user.mustBeLoggedIn(true, reject);
             root.user.mustBeUser(false, reject);
 
             const permissions = root.user.permissions[info.fieldName];
@@ -192,73 +192,73 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
         return new Promise ((resolve, reject) => {
           root.user.getPermissionsAndUser(() => {
 
-          root.user.mustBeLoggedIn(true, reject);
-          root.user.mustBeUser(true, reject);
+            root.user.mustBeLoggedIn(true, reject);
+            root.user.mustBeUser(true, reject);
 
-          //SELF or Admin can update email/firsl/last_name
-          //Admin only can update blocked
-          const permissions = root.user.permissions[info.fieldName];
+            //SELF or Admin can update email/firsl/last_name
+            //Admin only can update blocked
+            const permissions = root.user.permissions[info.fieldName];
 
-          let uid;
-          let self;
+            let uid;
+            let self;
 
-          if (!args.user_uid || args.user_uid == root.user.userUid) {
-            uid = root.user.userUid;
-            self = true;
-          } else {
-            uid = args.user_uid;
-          }
+            if (!args.user_uid || args.user_uid == root.user.userUid) {
+              uid = root.user.userUid;
+              self = true;
+            } else {
+              uid = args.user_uid;
+            }
 
-          let possible = [String(uid), 'ALL'];
-          let perms = checkPermissions(permissions, possible);
+            let possible = [String(uid), 'ALL'];
+            let perms = checkPermissions(permissions, possible);
 
-          if (!perms) {
-            return reject( new PublicError('UserError', '', 403));
-          }
-
-          if (self) {
-            let allowed = ['email', 'first_name', 'last_name', 'private'];
-            if (_.difference(Object.keys(args), allowed).length > 0){
+            if (!perms) {
               return reject( new PublicError('UserError', '', 403));
             }
-          }
 
-          let update = {};
-
-          const updateFields = ['first_name', 'last_name', 'blocked', 'email', 'private'];
-          for (let k of updateFields) {
-            if (typeof(args[k]) != 'undefined') {
-              update[k] = args[k];
-            }
-          }
-
-          let updateUser = db.cassandra.instance.UserProfile.update(
-            {user_uid: db.cassandra.uuidFromString(uid)},
-            update,
-            {return_query: true}
-          );
-
-          db.cassandra.doBatch(
-            [updateUser],
-            (err) => {
-              if (err) {
-               return reject( new PrivateError('CassandraError', 'error update user', 500));
-              } else {
-                db.cassandra.instance.UserProfile.findOne({user_uid:db.cassandra.uuidFromString(uid)}, (err, user) => {
-                  if (err || !user) {
-                   return reject( new PrivateError('CassandraError', 'error reading user', 500));
-                  } else {
-                    let resolver = _.find(resolvers, (s) => {
-                      return s.schema == 'user';
-                    });
-
-                    resolve([user]);
-                    resolver.addMembers(db, [args.user_uid]);
-                  }
-                });
+            if (self) {
+              let allowed = ['email', 'first_name', 'last_name', 'private'];
+              if (_.difference(Object.keys(args), allowed).length > 0){
+                return reject( new PublicError('UserError', '', 403));
               }
-           });
-        });
+            }
+
+            let update = {};
+
+            const updateFields = ['first_name', 'last_name', 'blocked', 'email', 'private'];
+            for (let k of updateFields) {
+              if (typeof(args[k]) != 'undefined') {
+                update[k] = args[k];
+              }
+            }
+
+            let updateUser = db.cassandra.instance.UserProfile.update(
+              {user_uid: db.cassandra.uuidFromString(uid)},
+              update,
+              {return_query: true}
+            );
+
+            db.cassandra.doBatch(
+              [updateUser],
+              (err) => {
+                if (err) {
+                 return reject( new PrivateError('CassandraError', 'error update user', 500));
+                } else {
+                  db.cassandra.instance.UserProfile.findOne({user_uid:db.cassandra.uuidFromString(uid)}, (err, user) => {
+                    if (err || !user) {
+                     return reject( new PrivateError('CassandraError', 'error reading user', 500));
+                    } else {
+                      let resolver = _.find(resolvers, (s) => {
+                        return s.schema == 'user';
+                      });
+
+                      resolve([user]);
+                      resolver.addMembers(db, [args.user_uid]);
+                    }
+                  });
+                }
+             });
+          });
         });
       }
     },
@@ -275,36 +275,34 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
         }
       },
       resolve: (root, args, ast, info) => {
-        const db = root.db;
-        const PublicError = root.errorHandler.PublicError;
-        const PrivateError = root.errorHandler.PrivateError;
-        const checkPermissions = root.permissionsHandler.checkPermissions;
 
         return new Promise ((resolve, reject) => {
+          root.user.getPermissionsAndUser(() => {
 
-          const permissions = root.user.permissions[info.fieldName];
-          let possible = [String(args.user_uid), 'ALL'];
-          let perms = checkPermissions(permissions, possible);
+            const permissions = root.user.permissions[info.fieldName];
+            let possible = [String(args.user_uid), 'ALL'];
+            let perms = checkPermissions(permissions, possible);
 
-          if (!perms) {
-            return reject( new PublicError('UserError', '', 403));
-          }
-
-          db.cassandra.instance.UserProfile.update(
-            {user_uid: db.cassandra.uuidFromString(args.user_uid)},
-            {deleted: true},
-            (err) => {
-            if (err) {
-              reject(new PrivateError('CassandraError', err, 500));
-            } else {
-              db.cassandra.instance.UserProfile.findOne({user_uid: db.cassandra.uuidFromString(args.user_uid)}, (err, user) => {
-                if (err || !user) {
-                 return reject( new PrivateError('CassandraError', 'error reading user', 500));
-                } else {
-                  resolve([user]);
-                }
-              });
+            if (!perms) {
+              return reject( new PublicError('UserError', '', 403));
             }
+
+            db.cassandra.instance.UserProfile.update(
+              {user_uid: db.cassandra.uuidFromString(args.user_uid)},
+              {deleted: true},
+              (err) => {
+              if (err) {
+                reject(new PrivateError('CassandraError', err, 500));
+              } else {
+                db.cassandra.instance.UserProfile.findOne({user_uid: db.cassandra.uuidFromString(args.user_uid)}, (err, user) => {
+                  if (err || !user) {
+                   return reject( new PrivateError('CassandraError', 'error reading user', 500));
+                  } else {
+                    resolve([user]);
+                  }
+                });
+              }
+            });
           });
         });
       }

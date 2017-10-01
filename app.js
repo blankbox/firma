@@ -63,7 +63,7 @@ module.exports = (config) => {
     req.permissionsHandler = permissionsHandler;
     req.errorHandler = errorHandler;
     req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
-    req.user = userHandler(req.loginHandler, req.permissionsHandler);
+    req.user = userHandler(req.loginHandler, req.permissionsHandler, config);
     req.tokenHandler = tokenHandler(db, config.authentication.local || {});
     next();
   });
@@ -101,11 +101,10 @@ module.exports = (config) => {
     res.status(200).sendFile(__dirname + '/graphiql/index.html');
   });
 
-  app.use(function(req, res, next) {
+  app.use((req, res) => {
     let err = new Error('Not Found');
     err.status = 404;
     res.status(err.status).send('Not Found');
-    next(err);
   });
 
   let server;
@@ -130,7 +129,7 @@ module.exports = (config) => {
     socket.permissionsHandler = permissionsHandler;
     socket.errorHandler = errorHandler;
     socket.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
-    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler);
+    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler, config);
     socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
 
     socket
