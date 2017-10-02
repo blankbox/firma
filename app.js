@@ -51,7 +51,7 @@ module.exports = (config) => {
   };
 
   loadRoles(config.routes);
-  require('./lib/dbLoader')(config.routes, db);
+  require('./lib/dbLoader')(config, db);
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
 
   let app = express();
