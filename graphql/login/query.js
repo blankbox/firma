@@ -1,6 +1,6 @@
 
 module.exports = (graphql, db, errorHandler) => {
-  const PubErr = errorHandler.PublicError;
+  const PublicError = errorHandler.PublicError;
   const PriErr = errorHandler.PrivateError;
   const GraphQLString = graphql.GraphQLString;
   const GraphQLList = graphql.GraphQLList;
@@ -20,11 +20,15 @@ module.exports = (graphql, db, errorHandler) => {
         return new Promise ((resolve, reject) =>{
           root.user.getPermissionsAndUser(() => {
 
-            root.user.mustBeUser(true);
+            let err = root.user.mustBeUser(true);
+            if (err) {
+              return reject (new PublicError (err.name, err.message, err.status));
+            }
+
             let userid;
             if (args.user_uid) {
               if (!root.user.loginPermissions.includes('UserAdmin') && args.user_uid != root.userHandler.userUid){
-                reject(new PubErr('User error', 'You can\'t manage other users that', 403));
+                reject(new PublicError('User error', 'You can\'t manage other users', 403));
               }
               userid = args.user_uid;
             } else {

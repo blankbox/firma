@@ -128,6 +128,39 @@ describe ('Flow', () => {
 
   });
 
+  describe('Query a user - not yet created:', () => {
+
+    let response;
+    before (done => {
+      requestContent.headers['user_token'] = user_token;
+      requestContent.body = `
+        query {
+          queryUserByUid
+            {
+            email,
+            user_uid
+            deleted
+          }
+        }`;
+      request(requestContent, (error, res) => {
+        if (!error) {
+          response = res;
+          done();
+        }
+      });
+    });
+
+    it('returns 500', () => {
+      assert.equal(500, response.statusCode);
+    });
+
+    it('returns email ', () => {
+      let d =  JSON.parse(response.body).errors.pop();
+      assert.equal('Verification failure - this user is not known.', d.message);
+    });
+  });
+
+
   describe('Create user:', () => {
 
     let response;

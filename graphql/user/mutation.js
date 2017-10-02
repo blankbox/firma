@@ -65,7 +65,8 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
                   last_name:args.last_name,
                   email:args.email,
                   user_uid: userUid,
-                  login_uid: login
+                  login_uid: login,
+                  client_data: {}
                 });
 
                 let updateLogin = db.cassandra.instance.Login.update(
