@@ -68,7 +68,13 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
       resolve: (root, args) => {
 
         return new Promise ((resolve, reject) =>{
+
           root.user.getPermissionsAndUser(() => {
+
+            let err = root.user.mustBeUser(true);
+            if (err) {
+              return reject (new PublicError (err.name, err.message, err.status));
+            }
 
             const permissions = root.user.permissions['findUser'];
             let possible = ['ALL', (args.user_uid || String(root.user.userUid))];
