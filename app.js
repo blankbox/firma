@@ -74,6 +74,20 @@ module.exports = (config) => {
     { type: 'application/graphql' }
   ));
 
+  app.use((req, res, next) => {
+    //Allow us to incude either a single body string, or
+    req.variables = {};
+    try {
+      let body = JSON.parse(req.body);
+      req.body = body.query;
+      req.variables = body.variables;
+    } catch (err) {
+      debug.log(err);
+    } finally {
+      next();
+    }
+  });
+
 
   app.use((req, res, next) => {
     debug.debug('---------------------------------------------------------');
@@ -82,8 +96,10 @@ module.exports = (config) => {
     next();
   });
 
+
+
   app.post('/graphql', (req, res) => {
-    graphql(schema, req.body,  req).then(result => {
+    graphql(schema, req.body,  req, null, req.variables).then(result => {
       req.result = result;
       let status = 200;
 
@@ -148,7 +164,16 @@ module.exports = (config) => {
 
     .on('graphql', (req, res) => {
 
-      graphql(schema, req.body,  socket).then(result => {
+      req.variables = {};
+      try {
+        let body = JSON.parse(req.body);
+        req.body = body.query;
+        req.variables = body.variables;
+      } catch (err) {
+        debug.log(err);
+      }
+
+      graphql(schema, req.body,  socket, null, req.variables).then(result => {
         req.result = result;
         let err = null;
         if (result.errors){
