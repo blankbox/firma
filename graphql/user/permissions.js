@@ -5,7 +5,9 @@
 //   }
 // ]
 
-module.exports = [
+
+
+const roles = [
   //Against all users
   {
     role:'admin',
@@ -37,3 +39,8 @@ module.exports = [
   }
 
 ];
+
+
+module.exports = {
+  roles
+};

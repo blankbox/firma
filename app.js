@@ -44,7 +44,7 @@ module.exports = (config) => {
       for (let r of dir.routes) {
         let file = dir.rootDirectory + r;
         if (fs.existsSync(file + '/permissions.js')) {
-          permissionsHandler.addPermissionsToRole(require(file + '/permissions.js'), ()=>{});
+          permissionsHandler.addPermissionsToRole(require(file + '/permissions.js').roles, ()=>{});
         }
       }
     }

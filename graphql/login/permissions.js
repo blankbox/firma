@@ -5,9 +5,14 @@
 //   }
 // ]
 
-module.exports = [
+
+const roles = [
   {
     role:'unregistered',
     permissions:['registerLogin']
   }
 ];
+
+module.exports = {
+  roles
+};
