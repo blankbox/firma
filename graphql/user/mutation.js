@@ -167,7 +167,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
     updateUser:{
       type: new GraphQLList(UserType),
-      description: 'Login',
+      description: 'Update user',
       args: {
         email: {
           name: 'Email',
