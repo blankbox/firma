@@ -36,12 +36,12 @@
     function graphQLFetcher(graphQLParams) {
       const jwtToken = document.getElementById('jwt-token').value;
       let headers = {
-        'Content-Type': 'application/graphql'
+        'Content-Type': 'application/json'
       };
       if (jwtToken) {
         localStorage.setItem('graphiql:jwtToken', jwtToken);
         headers = {
-          'Content-Type': 'application/graphql',
+          'Content-Type': 'application/json',
           'user_token': jwtToken ? `${jwtToken}` : null
         };
       }

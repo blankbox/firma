@@ -8,14 +8,13 @@ const jwt = require ('./lib/jwt');
 const userHandler = require('./lib/userHandler');
 const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
-const loginHandler = require('./lib/loginHandler');
+const LoginHandler = require('./lib/loginHandler');
 const fs = require('fs');
 
 
 module.exports = (config) => {
 
   const debug = config.debug;
-
   const db = require ('./lib/dbSetup')(debug, config.database );
 
   config.routes.push(
@@ -34,9 +33,6 @@ module.exports = (config) => {
     );
   }
 
-  if (config.authentication.local){
-    //TODO load local login
-  }
   const permissionsHandler = require('./lib/permissionsHandler')(db);
 
   const loadRoles = (routes) => {
@@ -51,27 +47,22 @@ module.exports = (config) => {
   };
 
   loadRoles(config.routes);
-  require('./lib/dbLoader')(config, db);
+  require('./lib/dbLoader')(config, db, () => {});
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
 
   let app = express();
   app.use(logger('short'));
 
-
   app.use ((req, res, next) => {
-    req.db = db;
-    req.permissionsHandler = permissionsHandler;
-    req.errorHandler = errorHandler;
-    req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
-    req.user = userHandler(req.loginHandler, req.permissionsHandler, config);
-    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
+    req.loginHandler = LoginHandler(db, errorHandler, permissionsHandler);
+    req.user = userHandler(req.loginHandler, permissionsHandler, config);
     next();
   });
 
   app.use(jwt(config.authentication));
 
   app.use(bodyParser.text(
-    { type: 'application/graphql' }
+    { type: 'application/json' }
   ));
 
   app.use((req, res, next) => {
@@ -141,12 +132,8 @@ module.exports = (config) => {
 
   scServer.on('connection', (socket) => {
 
-    socket.db = db;
-    socket.permissionsHandler = permissionsHandler;
-    socket.errorHandler = errorHandler;
-    socket.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
+    socket.loginHandler = LoginHandler(db, errorHandler, permissionsHandler);
     socket.user = userHandler(socket.loginHandler, socket.permissionsHandler, config);
-    socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
 
     socket
 
