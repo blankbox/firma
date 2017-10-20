@@ -68,10 +68,12 @@ module.exports = (config) => {
   app.use((req, res, next) => {
     //Allow us to incude either a single body string, or
     req.variables = {};
+    req.operationName = '';
     try {
       let body = JSON.parse(req.body);
       req.body = body.query;
       req.variables = body.variables;
+      req.operationName = body.operationName;
     } catch (err) {
       debug.log(err);
     } finally {
@@ -90,7 +92,7 @@ module.exports = (config) => {
 
 
   app.post('/graphql', (req, res) => {
-    graphql(schema, req.body,  req, null, req.variables).then(result => {
+    graphql(schema, req.body,  req, null, req.variables, req.operationName).then(result => {
       req.result = result;
       let status = 200;
 
@@ -133,7 +135,7 @@ module.exports = (config) => {
   scServer.on('connection', (socket) => {
 
     socket.loginHandler = LoginHandler(db, errorHandler, permissionsHandler);
-    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler, config);
+    socket.user = userHandler(socket.loginHandler, permissionsHandler, config);
 
     socket
 
