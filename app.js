@@ -25,7 +25,12 @@ module.exports = (config) => {
   const permissionsHandler = require('./lib/permissionsHandler')(db);
 
   permissionsHandler.loadRoles(config.routes);
-  require('./lib/dbLoader')(config, db, () => {
+  require('./lib/dbLoader')(config, db, (err) => {
+
+    if (err) {
+      return process.exit(1); //Ensure the the database has loaded before continuing
+    }
+
 
     const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
     const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
