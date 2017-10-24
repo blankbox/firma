@@ -11,6 +11,7 @@ module.exports = [
         first_name    : 'text',
         last_name : 'text',
         email     : 'text',
+        user_name     : 'text',
         blocked: {'type':'boolean', 'default':false},
         deleted: {'type':'boolean', 'default':false},
         private: {'type':'boolean', 'default':false},
@@ -25,6 +26,10 @@ module.exports = [
         user_by_email: {
           select: ['*'],
           key : ['email', 'user_uid'],
+        },
+        user_by_user_name: {
+          select: ['*'],
+          key : ['user_name', 'user_uid'],
         }
       }
     }

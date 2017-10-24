@@ -1,15 +1,12 @@
 const express = require('express');
 const logger = require('morgan');
 
-const {graphql} = require('graphql');
 const bodyParser = require('body-parser');
 
 const jwt = require ('./lib/jwt');
 const userHandler = require('./lib/userHandler');
-const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
 const LoginHandler = require('./lib/loginHandler');
-const fs = require('fs');
 
 
 module.exports = (config) => {
@@ -35,22 +32,13 @@ module.exports = (config) => {
 
   const permissionsHandler = require('./lib/permissionsHandler')(db);
 
-  const loadRoles = (routes) => {
-    for (let dir of routes) {
-      for (let r of dir.routes) {
-        let file = dir.rootDirectory + r;
-        if (fs.existsSync(file + '/permissions.js')) {
-          permissionsHandler.addPermissionsToRole(require(file + '/permissions.js').roles, ()=>{});
-        }
-      }
-    }
-  };
-
-  loadRoles(config.routes);
+  permissionsHandler.loadRoles(config.routes);
   require('./lib/dbLoader')(config, db, () => {});
   const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
+  const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
 
   let app = express();
+
   app.use(logger('short'));
 
   app.use ((req, res, next) => {
@@ -65,45 +53,18 @@ module.exports = (config) => {
     { type: 'application/json' }
   ));
 
-  app.use((req, res, next) => {
-    //Allow us to incude either a single body string, or
-    req.variables = {};
-    req.operationName = '';
-    try {
-      let body = JSON.parse(req.body);
-      req.body = body.query;
-      req.variables = body.variables;
-      req.operationName = body.operationName;
-    } catch (err) {
-      debug.log(err);
-    } finally {
-      next();
-    }
+  app.use(graphqlHandler.requestParser);
+
+  app.post('/graphql', (req, res, next)=>{
+    graphqlHandler.graphqlExecute(req, req, res, next);
   });
 
-
   app.use((req, res, next) => {
-    debug.debug('---------------------------------------------------------');
-    debug.debug('user perms:', req.user);
-    debug.debug(req.body);
-    next();
-  });
-
-
-
-  app.post('/graphql', (req, res) => {
-    graphql(schema, req.body,  req, null, req.variables, req.operationName).then(result => {
-      req.result = result;
-      let status = 200;
-
-      if (result.errors){
-        let err = errorHandler.errorHandler(result.errors);
-        result.errors = err.errors;
-        status = err.status;
-      }
-
-      res.status(status).json(result);
-    });
+    if (req.result) {
+      res.status(req.status).json(req.result);
+    } else (
+      next()
+    );
   });
 
   app.get('/graphiql', (req, res) => {
@@ -152,25 +113,13 @@ module.exports = (config) => {
     })
 
     .on('graphql', (req, res) => {
-
-      req.variables = {};
-      try {
-        let body = JSON.parse(req.body);
-        req.body = body.query;
-        req.variables = body.variables;
-      } catch (err) {
-        debug.log(err);
+      graphqlHandler.requestParser(req, res, () => {
+        graphqlHandler.graphqlExecute(socket, req, res, () => {
+          res(req.result.errors, req.result);
+        });
       }
 
-      graphql(schema, req.body,  socket, null, req.variables).then(result => {
-        req.result = result;
-        let err = null;
-        if (result.errors){
-          let err = errorHandler.errorHandler(result.errors);
-          result.errors = err.errors;
-        }
-        res(err, result);
-      });
+      );
     });
 
   }).on('error', (err) => {
@@ -184,6 +133,8 @@ module.exports = (config) => {
   if (config.dataService) {
     config.dataService(db);
   }
+
+  const {graphql} = require('graphql');
 
 
   if (config.returnSchema) {

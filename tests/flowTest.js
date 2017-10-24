@@ -13,7 +13,7 @@ let requestContent = {
   method: 'POST',
   uri: url,
   headers: {
-    'Content-Type':'application/graphql'
+    'Content-Type':'application/json'
   },
   body: ''
 };
@@ -30,6 +30,7 @@ jwt.sign({ foo: 'bar' }, cert,  {
   expiresIn: '1h'
 }, function(err, token) {
   user_token = token;
+  console.log(token);
   email = user_token.slice(-8) + '@foo.bar';
   newEmail = user_token.slice(-8) + '@foo.new';
 });

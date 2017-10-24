@@ -34,7 +34,13 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       args: {
         email: {
           name: 'Email',
-          type: new GraphQLNonNull(GraphQLString)
+          type:GraphQLString
+        },
+        user_name: {
+          name: 'User name',
+          type:GraphQLString
+
+          // type: new GraphQLNonNull(GraphQLString)
         },
         first_name: {
           name: 'First name',
