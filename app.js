@@ -31,7 +31,6 @@ module.exports = (config) => {
       return process.exit(1); //Ensure the the database has loaded before continuing
     }
 
-
     const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
     const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
 
