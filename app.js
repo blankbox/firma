@@ -1,9 +1,13 @@
 const errorHandler = require ('./lib/error');
 const LoginHandler = require('./lib/loginHandler');
 
-module.exports = (config) => {
+module.exports.db = require ('./lib/dbSetup');
 
-  const debug = config.debug;
+module.exports.default = (config, cb) => {
+
+  const debug = config.debug || require('tracer').colorConsole({level:'error'});
+  debug.error('Preparing to configure database');
+
   const db = require ('./lib/dbSetup')(debug, config.database );
 
   config.routes.push(
@@ -31,8 +35,13 @@ module.exports = (config) => {
       return process.exit(1); //Ensure the the database has loaded before continuing
     }
 
+    debug.error('Database configured');
+
+
     const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
     const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
+
+    debug.error('Loading express');
 
     const app = require('./lib/express')({
       config,
@@ -54,7 +63,9 @@ module.exports = (config) => {
       server = http.createServer(app);
       server.listen(config.http.port);
     }
+    debug.error('Done');
 
+    debug.error('Loading socket server');
 
     let scServer = require('./lib/socket')({
       server,
@@ -67,11 +78,17 @@ module.exports = (config) => {
       debug
     });
 
-    return {
-      db,
-      schema,
-      app,
-      scServer
-    };
+    debug.error('Done');
+
+
+    if (!cb) {cb=()=>{debug.log('ready');};}
+    cb(
+      {
+        db,
+        schema,
+        app,
+        scServer
+      }
+    );
   });
 };
