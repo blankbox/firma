@@ -1,9 +1,5 @@
 const _ = require ('underscore');
 
-const lib = require('./mutation/lib');
-const checkEmail = lib.checkEmail;
-
-
 module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
   const PublicError = errorHandler.PublicError;
@@ -16,6 +12,19 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
   const GraphQLList = graphql.GraphQLList;
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
+
+  const checkEmail = (root, args, cb) => {
+    db.cassandra.instance.UserProfile.findOne(
+      {email:args.email},
+      {materialized_view:'user_by_email'}, (err, user) => {
+      if (err) {
+        cb(new errorHandler.PrivateError('CassandraError', 'error select from user by email', 500));
+      } else {
+        cb(null, user);
+      }
+    });
+  };
+
   const UserType = graphql.schema.user;
 
   return {
@@ -25,7 +34,12 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       args: {
         email: {
           name: 'Email',
+          type:GraphQLString
+        },
+        user_name: {
+          name: 'User name',
           type: new GraphQLNonNull(GraphQLString)
+
         },
         first_name: {
           name: 'First name',

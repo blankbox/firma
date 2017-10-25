@@ -36,19 +36,19 @@
     function graphQLFetcher(graphQLParams) {
       const jwtToken = document.getElementById('jwt-token').value;
       let headers = {
-        'Content-Type': 'application/graphql'
+        'Content-Type': 'application/json'
       };
       if (jwtToken) {
         localStorage.setItem('graphiql:jwtToken', jwtToken);
         headers = {
-          'Content-Type': 'application/graphql',
+          'Content-Type': 'application/json',
           'user_token': jwtToken ? `${jwtToken}` : null
         };
       }
       return fetch('/graphql', {
         method: 'post',
         headers,
-        body: graphQLParams.query,
+        body: JSON.stringify(graphQLParams),
       }).then(function (response) {
         return response.text();
       }).then(function (responseBody) {
