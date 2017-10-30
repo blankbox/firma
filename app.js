@@ -5,6 +5,8 @@ module.exports.db = require ('./lib/dbSetup');
 
 module.exports.default = (config, cb) => {
 
+  //TODO Validate config
+
   const debug = config.debug || require('tracer').colorConsole({level:'error'});
   debug.error('Preparing to configure database');
 
@@ -32,11 +34,11 @@ module.exports.default = (config, cb) => {
   require('./lib/dbLoader')(config, db, (err) => {
 
     if (err) {
+      debug.error(err);
       return process.exit(1); //Ensure the the database has loaded before continuing
     }
 
     debug.error('Database configured');
-
 
     const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
     const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
@@ -80,15 +82,12 @@ module.exports.default = (config, cb) => {
 
     debug.error('Done');
 
-
     if (!cb) {cb=()=>{debug.log('ready');};}
-    cb(
-      {
-        db,
-        schema,
-        app,
-        scServer
-      }
-    );
+    cb({
+      db,
+      schema,
+      app,
+      scServer
+    });
   });
 };
