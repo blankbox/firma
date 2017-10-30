@@ -34,12 +34,11 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       args: {
         email: {
           name: 'Email',
-          type:GraphQLString
+          type: new GraphQLNonNull(GraphQLString),
         },
         user_name: {
           name: 'User name',
-          type: new GraphQLNonNull(GraphQLString)
-
+          type: new GraphQLNonNull(GraphQLString),
         },
         first_name: {
           name: 'First name',
@@ -53,9 +52,15 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
       resolve: (root, args, ast, info) => {
 
         return new Promise ((resolve, reject) => {
-          root.user.mustBeLoggedIn(true, reject);
+          let err = root.user.mustBeLoggedIn(true);
+          if (err) {
+            return reject (new PublicError (err.name, err.message, err.status));
+          }
           root.user.getPermissionsAndUser(() => {
-            root.user.mustBeUser(false, reject);
+            let err = root.user.mustBeUser(false);
+            if (err) {
+              return reject (new PublicError (err.name, err.message, err.status));
+            }
 
             const permissions = root.user.permissions[info.fieldName];
             let possible = [String(root.user.loginUid), 'ALL'];
