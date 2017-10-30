@@ -5,10 +5,12 @@ const uuid = require('uuid/v1');
 
 
 let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
-let audience = 'vybe_dev';
+let audience = 'vybe_dev_two';
 let user_token;
 let email;
-
+let first_name = 'Bob';
+let last_name = 'Test';
+let user_name = first_name + last_name;
 jwt.sign({ foo: 'bar' }, cert,  {
   audience:audience,
   subject:audience +':' + uuid(),
@@ -27,13 +29,8 @@ const options = {
 
 const socket = socketCluster.connect(options);
 
-//Socket request:
-//{
-  // headers:{},
-  // body{},
-//}
-
 const socketRequest = (query, response) => {
+
   socket.emit('graphql', {body: query}, (err, result) => {
     if (err) {
       //Do something
@@ -51,31 +48,30 @@ socket.on('connect', (status) => {
       if (err) {
         // Do something
       } else {
-        socketRequest(
-          `mutation {
-            registerLogin {
-              login_uid
-            },
-            createUser (
-              email:"` + email + `"
-            ) {
-              email,
-              user_uid
-            },
-            updateUser (
-             first_name: "Bob"
-             last_name:"TEST"
-           ) {
-             first_name,
-             last_name
-           }
-          }`,
-           (result) => {
+        let query = `
+        mutation {
+          registerLogin {
+            login_uid
+          },
+          createUser (
+            user_name:"${user_name}"
+            email:"${email}"
+            first_name: "${first_name}"
+            last_name:"${last_name}"
+          ) {
+            user_uid
+          },
+       }`;
 
-            process.stdout.write(JSON.stringify(result.data));
+
+        socketRequest(
+          query,
+          (result) => {
+            process.stdout.write(JSON.stringify(result));
             if(result.errors) {
               process.stdout.write(JSON.stringify(result.errors));
             }
+            socket.subscribe(result.data.registerLogin[0].login_uid);
 
           }
         );
