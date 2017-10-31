@@ -32,6 +32,7 @@ module.exports.default = (config, cb) => {
   require('./lib/dbLoader')(config, db, (err) => {
 
     if (err) {
+      debug.error(err);
       return process.exit(1); //Ensure the the database has loaded before continuing
     }
 
