@@ -5,7 +5,7 @@ const uuid = require('uuid/v1');
 
 
 let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
-let audience = 'vybe_dev_two';
+let audience = 'vybe_dev';
 let user_token;
 let email;
 let first_name = 'Bob';
@@ -46,6 +46,7 @@ socket.on('connect', (status) => {
 
     socket.emit('login', {headers:{user_token}}, (err) => {
       if (err) {
+        console.log(err);
         // Do something
       } else {
         let query = `
@@ -71,8 +72,21 @@ socket.on('connect', (status) => {
             if(result.errors) {
               process.stdout.write(JSON.stringify(result.errors));
             }
-            socket.subscribe(result.data.registerLogin[0].login_uid);
 
+            let myNotifications = socket.subscribe(result.data.createUser[0].user_uid);
+
+            myNotifications.on('subscribeFail', function (err, channelName) {
+              console.log(err);
+              console.log(channelName);
+
+              // Handle subscribe failure
+            });
+
+            myNotifications.watch((data) => {
+              console.log('data', data);
+            });
+
+            socket.publish(result.data.createUser[0].user_uid, 'lo');
           }
         );
       }
