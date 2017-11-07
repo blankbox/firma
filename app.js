@@ -1,20 +1,14 @@
-const express = require('express');
-const logger = require('morgan');
-
-const {graphql} = require('graphql');
-const bodyParser = require('body-parser');
-
-const jwt = require ('./lib/jwt');
-const userHandler = require('./lib/userHandler');
-const tokenHandler = require('./lib/tokenHandler');
 const errorHandler = require ('./lib/error');
-const loginHandler = require('./lib/loginHandler');
-const fs = require('fs');
+const LoginHandler = require('./lib/loginHandler');
 
+module.exports.db = require ('./lib/dbSetup');
 
-module.exports = (config) => {
+module.exports.default = (config, cb) => {
 
-  const debug = config.debug;
+  //TODO Validate config
+
+  const debug = config.debug || require('tracer').colorConsole({level:'error'});
+  debug.error('Preparing to configure database');
 
   const db = require ('./lib/dbSetup')(debug, config.database );
 
@@ -34,183 +28,66 @@ module.exports = (config) => {
     );
   }
 
-  if (config.authentication.local){
-    //TODO load local login
-  }
   const permissionsHandler = require('./lib/permissionsHandler')(db);
 
-  const loadRoles = (routes) => {
-    for (let dir of routes) {
-      for (let r of dir.routes) {
-        let file = dir.rootDirectory + r;
-        if (fs.existsSync(file + '/permissions.js')) {
-          permissionsHandler.addPermissionsToRole(require(file + '/permissions.js').roles, ()=>{});
-        }
-      }
+  permissionsHandler.loadRoles(config.routes);
+  require('./lib/dbLoader')(config, db, (err) => {
+
+    if (err) {
+      debug.error(err);
+      return process.exit(1); //Ensure the the database has loaded before continuing
     }
-  };
 
-  loadRoles(config.routes);
-  require('./lib/dbLoader')(config, db);
-  const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
+    debug.error('Database configured');
 
-  let app = express();
-  app.use(logger('short'));
+    const schema = require ('./lib/rootSchemaBuilder')(config, db, errorHandler, permissionsHandler);
+    const graphqlHandler = require('./lib/graphQLHandler')(debug, errorHandler, schema);
 
+    debug.error('Loading express');
 
-  app.use ((req, res, next) => {
-    req.db = db;
-    req.permissionsHandler = permissionsHandler;
-    req.errorHandler = errorHandler;
-    req.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
-    req.user = userHandler(req.loginHandler, req.permissionsHandler, config);
-    req.tokenHandler = tokenHandler(db, config.authentication.local || {});
-    next();
-  });
+    const app = require('./lib/express')({
+      config,
+      db,
+      LoginHandler,
+      errorHandler,
+      permissionsHandler,
+      graphqlHandler
+    });
 
-  app.use(jwt(config.authentication));
+    let server;
 
-  app.use(bodyParser.text(
-    { type: 'application/graphql' }
-  ));
-
-  app.use((req, res, next) => {
-    //Allow us to incude either a single body string, or
-    req.variables = {};
-    try {
-      let body = JSON.parse(req.body);
-      req.body = body.query;
-      req.variables = body.variables;
-    } catch (err) {
-      debug.log(err);
-    } finally {
-      next();
+    if (config.https) {
+      const https = require('https');
+      server = https.createServer({cert: config.https.cert, key: config.https.key}, app);
+      server.listen(config.https.port);
+    } else {
+      const http = require('http');
+      server = http.createServer(app);
+      server.listen(config.http.port);
     }
-  });
+    debug.error('Done');
 
+    debug.error('Loading socket server');
 
-  app.use((req, res, next) => {
-    debug.debug('---------------------------------------------------------');
-    debug.debug('user perms:', req.user);
-    debug.debug(req.body);
-    next();
-  });
-
-
-
-  app.post('/graphql', (req, res) => {
-    graphql(schema, req.body,  req, null, req.variables).then(result => {
-      req.result = result;
-      let status = 200;
-
-      if (result.errors){
-        let err = errorHandler.errorHandler(result.errors);
-        result.errors = err.errors;
-        status = err.status;
-      }
-
-      res.status(status).json(result);
-    });
-  });
-
-  app.get('/graphiql', (req, res) => {
-    res.status(200).sendFile(__dirname + '/graphiql/index.html');
-  });
-
-  app.use((req, res) => {
-    let err = new Error('Not Found');
-    err.status = 404;
-    res.status(err.status).send('Not Found');
-  });
-
-  let server;
-
-  if (config.https) {
-    const https = require('https');
-    server = https.createServer({cert: config.https.cert, key: config.https.key}, app);
-    server.listen(config.https.port);
-  } else {
-    const http = require('http');
-    server = http.createServer(app);
-    server.listen(config.http.port);
-  }
-
-  const socketClusterServer = require('socketcluster-server');
-
-  const scServer = socketClusterServer.attach(server);
-
-  scServer.on('connection', (socket) => {
-
-    socket.db = db;
-    socket.permissionsHandler = permissionsHandler;
-    socket.errorHandler = errorHandler;
-    socket.loginHandler = loginHandler(db, errorHandler, permissionsHandler);
-    socket.user = userHandler(socket.loginHandler, socket.permissionsHandler, config);
-    socket.tokenHandler = tokenHandler(db, config.authentication.local || {});
-
-    socket
-
-    .on('login', (req,  res) => {
-      socket.headers = req.headers;
-      jwt(config.authentication)(socket, null, () => {
-        if (socket.user.loginUid) {
-          socket.setAuthToken({loginUid: socket.user.loginUid, aud: socket.user.audience});
-          return res();
-        } else {
-          return res(socket.user.error);
-        }
-      });
-    })
-
-    .on('graphql', (req, res) => {
-
-      req.variables = {};
-      try {
-        let body = JSON.parse(req.body);
-        req.body = body.query;
-        req.variables = body.variables;
-      } catch (err) {
-        debug.log(err);
-      }
-
-      graphql(schema, req.body,  socket, null, req.variables).then(result => {
-        req.result = result;
-        let err = null;
-        if (result.errors){
-          let err = errorHandler.errorHandler(result.errors);
-          result.errors = err.errors;
-        }
-        res(err, result);
-      });
+    let scServer = require('./lib/socket')({
+      server,
+      config,
+      db,
+      LoginHandler,
+      errorHandler,
+      permissionsHandler,
+      graphqlHandler,
+      debug
     });
 
-  }).on('error', (err) => {
-    debug.error(err);
-  });
+    debug.error('Done');
 
-
-  //API to allow direct access to the database instances from the consuming
-  //application - intented to allow use of redis as a messenger, and data import/export
-
-  if (config.dataService) {
-    config.dataService(db);
-  }
-
-
-  if (config.returnSchema) {
-    const {
-      introspectionQuery,
-      printSchema,
-    } = require('graphql/utilities');
-    graphql(schema, introspectionQuery).then((result) => {
-      config.returnSchema(
-        {
-          json:JSON.stringify(result, null, 2),
-          human:printSchema(schema),
-          schema
-        }
-      );
+    if (!cb) {cb=()=>{debug.log('ready');};}
+    cb({
+      db,
+      schema,
+      app,
+      scServer
     });
-
-  }
+  });
 };

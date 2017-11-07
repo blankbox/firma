@@ -9,13 +9,13 @@ let requestContent = {
   method: 'POST',
   uri: url,
   headers: {
-    'Content-Type':'application/graphql'
+    'Content-Type':'application/json'
   },
   body: ''
 };
 
 
-xdescribe ('Graphql', () => {
+describe ('Graphql', () => {
   describe('Get schema:', () => {
 
     let response;

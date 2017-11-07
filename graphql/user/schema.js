@@ -12,6 +12,9 @@ module.exports = (graphql) => {
           type: GraphQLString,
           description: 'User UUID'
         },
+        user_name:{
+          type: GraphQLString,
+        },
         email: {
           type: GraphQLString,
           description: 'Email'

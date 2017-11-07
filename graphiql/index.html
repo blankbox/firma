@@ -19,14 +19,118 @@
         padding: 7px 14px 6px;
         font-size: 14px;
       }
+      .fb-login-button {
+        width: 15%;
+        float: left;
+      }
+      #status {
+          margin-left: 15%;
+      }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.10.2/graphiql.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/2.0.3/fetch.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.5.4/react-dom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/graphiql/0.10.2/graphiql.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   </head>
   <body>
+
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1.41.min.js"></script>
+
+    <script>
+      $.getJSON( "loginSettings.json", function( data ) {
+
+
+        AWS.config.region = data.region;//'eu-west-2';
+
+        (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        window.fbAsyncInit = function() {
+          FB.init({
+            appId      : data.FBAppID,
+            cookie     : true,
+            xfbml      : true,
+            version    : 'v2.2'
+          });
+          FB.getLoginStatus(statusChangeCallback);
+        };
+
+
+
+        function statusChangeCallback(response) {
+          console.log('statusChangeCallback', response);
+
+          if (response.status === 'connected' && response.authResponse) {
+
+            testAPI();
+
+            var cognitoidentity = new AWS.CognitoIdentity();
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+              IdentityPoolId: `${data.region}:${data.idPoolId}`,
+              Logins: { 'graph.facebook.com': response.authResponse.accessToken }
+            });
+
+            AWS.config.credentials.get(function(err) {
+              if (err) return console.log("Error", err);
+              console.log("Cognito Identity Id", AWS.config.credentials.params);
+
+              var data = {
+                IdentityId: AWS.config.credentials.params.IdentityId,
+                Logins:AWS.config.credentials.params.Logins
+              };
+
+              cognitoidentity.getOpenIdToken(data, function (err, data) {
+                if (err) {
+                  console.log(err, err.stack); // an error occurred
+                } else {
+                  console.log(data);
+                  updateView(data);
+                }
+              });
+
+            });
+
+
+          } else if (response.status === 'not_authorized') {
+            document.getElementById('status').innerHTML = 'Please log into this app.';
+          } else {
+            document.getElementById('status').innerHTML = 'Please log into Facebook.';
+            document.getElementById('jwt-token').value = 'JWT goes here';
+
+          }
+        }
+      });
+
+
+
+      function testAPI() {
+        console.log('Welcome!  Fetching your information.... ');
+        FB.api('/me', function(response) {
+          console.log('Successful login for: ' + response.name);
+          document.getElementById('status').innerHTML = 'Thanks for logging in, ' + response.name + '! The token will expire after 15 minutes - when it expires, please refresh the page, or login again.';
+        });
+      }
+
+      function updateView(data) {
+          document.getElementById('jwt-token').value = data.Token;
+      }
+
+
+
+    </script>
+
+    <div class="jwt-token">
+      <div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="login_with" data-show-faces="false" data-auto-logout-link="true" data-use-continue-as="false"></div>
+      <div id="status"></div>
+    </div>
+
     <div class="jwt-token">JWT Token <input id="jwt-token" placeholder="JWT Token goes here"></div>
     <div id="graphiql">Loading...</div>
     <script>
@@ -36,19 +140,19 @@
     function graphQLFetcher(graphQLParams) {
       const jwtToken = document.getElementById('jwt-token').value;
       let headers = {
-        'Content-Type': 'application/graphql'
+        'Content-Type': 'application/json'
       };
       if (jwtToken) {
         localStorage.setItem('graphiql:jwtToken', jwtToken);
         headers = {
-          'Content-Type': 'application/graphql',
+          'Content-Type': 'application/json',
           'user_token': jwtToken ? `${jwtToken}` : null
         };
       }
       return fetch('/graphql', {
         method: 'post',
         headers,
-        body: graphQLParams.query,
+        body: JSON.stringify(graphQLParams),
       }).then(function (response) {
         return response.text();
       }).then(function (responseBody) {
