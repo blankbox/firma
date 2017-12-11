@@ -8,9 +8,9 @@ let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
 let audience = 'vybe_dev';
 let user_token;
 let email;
+let user_name;
 let first_name = 'Bob';
 let last_name = 'Test';
-let user_name = first_name + last_name;
 jwt.sign({ foo: 'bar' }, cert,  {
   audience:audience,
   subject:audience +':' + uuid(),
@@ -18,6 +18,7 @@ jwt.sign({ foo: 'bar' }, cert,  {
 }, function(err, token) {
   user_token = token;
   email = user_token.slice(-8) + '@foo.bar';
+  user_name = email;
 });
 
 const socketCluster = require('socketcluster-client');
@@ -27,7 +28,7 @@ const options = {
   hostname:'localhost',
 };
 
-const socket = socketCluster.connect(options);
+let socket = socketCluster.connect(options);
 
 const socketRequest = (query, response) => {
 
@@ -39,6 +40,14 @@ const socketRequest = (query, response) => {
     response(result);
   });
 };
+
+
+socket.on('error', (err,  cb) => {
+  console.log(err.code);
+  if (err.code != 1000) {
+    socket = socketCluster.connect(options);
+  }
+});
 
 socket.on('connect', (status) => {
 
@@ -62,7 +71,9 @@ socket.on('connect', (status) => {
           ) {
             user_uid
           },
-       }`;
+        }
+
+       `;
 
 
         socketRequest(
