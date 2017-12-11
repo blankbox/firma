@@ -6,7 +6,28 @@ module.exports = (graphql, db, errorHandler) => {
   const GraphQLList = graphql.GraphQLList;
 
   const LoginType = graphql.schema.login;
+  const isUser = graphql.schema.isUser;
+
   return {
+    loginHasUser: {
+      type: new GraphQLList(isUser),
+      description:'Get users logins',
+      args:{},
+      resolve: (root) => {
+        return new Promise ((resolve, reject) =>{
+          root.user.getPermissionsAndUser(() => {
+            let err = root.user.mustBeLoggedIn(true);
+
+            if (err) {
+              return reject (new PublicError (err.name, err.message, err.status));
+            }
+            return resolve(
+              [{user_uid: root.user.userUid}]
+            );
+          });
+        });
+      }
+    },
     queryUserLogins: {
       type: new GraphQLList(LoginType),
       description:'Get users logins',
