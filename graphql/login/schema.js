@@ -27,6 +27,15 @@ return [
         description: 'Roles'
       }
     })
+  }),
+  new GraphQLObjectType({
+    name: 'isUser',
+    fields: () => ({
+      user_uid: {
+        type: GraphQLString,
+        description: 'User UUID'
+      },
+    })
   })
 ];
 };
