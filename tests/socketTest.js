@@ -2,6 +2,7 @@
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const uuid = require('uuid/v1');
+const debug = require('tracer').colorConsole({level:'error'});
 
 
 let cert = fs.readFileSync('./vybe_test.pub', 'utf8');
@@ -42,8 +43,8 @@ const socketRequest = (query, response) => {
 };
 
 
-socket.on('error', (err,  cb) => {
-  console.log(err.code);
+socket.on('error', (err) => {
+  debug.log(err.code);
   if (err.code != 1000) {
     socket = socketCluster.connect(options);
   }
@@ -55,7 +56,7 @@ socket.on('connect', (status) => {
 
     socket.emit('login', {headers:{user_token}}, (err) => {
       if (err) {
-        console.log(err);
+        debug.log(err);
         // Do something
       } else {
         let query = `
@@ -87,14 +88,14 @@ socket.on('connect', (status) => {
             let myNotifications = socket.subscribe(result.data.createUser[0].user_uid);
 
             myNotifications.on('subscribeFail', function (err, channelName) {
-              console.log(err);
-              console.log(channelName);
+              debug.log(err);
+              debug.log(channelName);
 
               // Handle subscribe failure
             });
 
             myNotifications.watch((data) => {
-              console.log('data', data);
+              debug.log('data', data);
             });
 
             socket.publish(result.data.createUser[0].user_uid, 'lo');
