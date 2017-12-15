@@ -13,12 +13,12 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
   const GraphQLNonNull = graphql.GraphQLNonNull;
 
 
-  const checkEmail = (root, args, cb) => {
+  const checkUserName = (root, args, cb) => {
     db.cassandra.instance.UserProfile.findOne(
-      {email:args.email},
-      {materialized_view:'user_by_email'}, (err, user) => {
+      {user_name:args.user_name},
+      {materialized_view:'user_by_user_name'}, (err, user) => {
       if (err) {
-        cb(new errorHandler.PrivateError('CassandraError', 'error select from user by email', 500));
+        cb(new errorHandler.PrivateError('CassandraError', 'error select from user by user_name', 500));
       } else {
         cb(null, user);
       }
@@ -69,7 +69,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
               return reject( new PublicError('LoginError', 'You cannot create a user', 403));
             }
 
-            checkEmail (root, args, (err, user) => {
+            checkUserName (root, args, (err, user) => {
               if (err || user) {
                 return reject(err || new PublicError('UserError', 'Email address in use', 403));
               } else {
@@ -83,6 +83,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
                   first_name:args.first_name,
                   last_name:args.last_name,
                   email:args.email,
+                  user_name: args.user_name,
                   user_uid: userUid,
                   login_uid: login,
                   client_data: {}
