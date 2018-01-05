@@ -30,6 +30,7 @@ describe ('Users', () => {
           createUser (
             email:"` + email + `",
             password:"` + pass + `"
+            user_name:"foo"
           ) {
             email,
             user_uid,

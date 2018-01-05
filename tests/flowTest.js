@@ -170,6 +170,7 @@ describe ('Flow', () => {
         mutation {
           createUser (
             email:"` + email + `"
+            user_name:"` + email + `"
           ) {
             email,
             user_uid

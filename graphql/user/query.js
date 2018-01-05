@@ -12,6 +12,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
 
   const UserType = graphql.schema.user;
 
+  const dbQuery = require('../../lib/dbQuery')({ db });
   return {
     queryUserByEmail: {
       type: new GraphQLList(UserType),
@@ -34,8 +35,8 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
             if (!perms) {
               return reject (new PublicError('Error', 'You can\'t search for users', 403));
             }
-
-            db.cassandra.instance.UserProfile.findOne(
+            dbQuery.findOne(
+              'UserProfile',
               {email:args.email},
               {materialized_view: 'user_by_email'},
               (err, user) => {
@@ -83,6 +84,7 @@ module.exports = (graphql, db, errorHandler, permissionsHandler) => {
             if (!perms) {
               return reject (new PublicError('Error', 'You can\'t search for users', 403));
             }
+
 
             db.cassandra.instance.UserProfile.findOne(
               {user_uid:Uuid.fromString(args.user_uid || root.user.userUid)},

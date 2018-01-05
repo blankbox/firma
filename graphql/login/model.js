@@ -17,6 +17,10 @@ module.exports = [
       },
       table_name: 'login_table',
       indexes: ['blacklist']
+    },
+    cache: {
+      onRead: true,
+      keys: ['user_uid', 'login_uid']
     }
   }
 ];

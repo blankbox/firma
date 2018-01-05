@@ -47,6 +47,19 @@ module.exports = [
           }
         },
         {
+          on: 'user_name',
+          using: 'org.apache.cassandra.index.sasi.SASIIndex',
+          options: {
+            'mode': 'CONTAINS',
+            'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer',
+            'tokenization_enable_stemming': 'true',
+            'tokenization_locale': 'en',
+            'tokenization_skip_stop_words': 'true',
+            'analyzed': 'true',
+            'tokenization_normalize_lowercase': 'true'
+          }
+        },
+        {
           on: 'first_name',
           using: 'org.apache.cassandra.index.sasi.SASIIndex',
           options: {
