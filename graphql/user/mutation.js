@@ -236,7 +236,6 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
             let possible = [String(uid), 'ALL'];
             let perms = checkPermissions(permissions, possible);
-            console.log(perms);
             if (!perms) {
               return reject( new PublicError('UserError', '', 403));
             }
