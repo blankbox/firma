@@ -201,6 +201,10 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
           name: 'Last Name',
           type: GraphQLString
         },
+        avatar_url: {
+          name: 'Avatar url',
+          type: GraphQLString
+        },
         blocked: {
           type: GraphQLBoolean,
         },
@@ -232,13 +236,13 @@ module.exports = (graphql, db, errorHandler, permissionsHandler, config) => {
 
             let possible = [String(uid), 'ALL'];
             let perms = checkPermissions(permissions, possible);
-
+            console.log(perms);
             if (!perms) {
               return reject( new PublicError('UserError', '', 403));
             }
 
             if (self) {
-              let allowed = ['email', 'first_name', 'last_name', 'private'];
+              let allowed = ['email', 'first_name', 'last_name', 'private', 'avatar_url'];
               if (_.difference(Object.keys(args), allowed).length > 0){
                 return reject( new PublicError('UserError', '', 403));
               }

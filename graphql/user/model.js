@@ -12,6 +12,7 @@ module.exports = [
         last_name : 'text',
         email     : 'text',
         user_name  :'text',
+        avatar_url  :'text',
         blocked: {'type':'boolean', 'default':false},
         deleted: {'type':'boolean', 'default':false},
         private: {'type':'boolean', 'default':false},
