@@ -27,6 +27,10 @@ module.exports = (graphql) => {
           type: GraphQLString,
           description: 'Last name'
         },
+        avatar_url: {
+          type: GraphQLString,
+          description: 'Avatar url'
+        },
         blocked: {
           type: GraphQLBoolean,
           description: 'Flag to mark if the user is blocked'

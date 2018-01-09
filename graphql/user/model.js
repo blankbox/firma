@@ -11,7 +11,8 @@ module.exports = [
         first_name    : 'text',
         last_name : 'text',
         email     : 'text',
-        user_name     : 'text',
+        user_name  :'text',
+        avatar_url  :'text',
         blocked: {'type':'boolean', 'default':false},
         deleted: {'type':'boolean', 'default':false},
         private: {'type':'boolean', 'default':false},
@@ -31,7 +32,61 @@ module.exports = [
           select: ['*'],
           key : ['user_name', 'user_uid'],
         }
-      }
+      },
+      custom_indexes: [
+        {
+          on: 'email',
+          using: 'org.apache.cassandra.index.sasi.SASIIndex',
+          options: {
+            'mode': 'CONTAINS',
+            'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer',
+            'tokenization_enable_stemming': 'true',
+            'tokenization_locale': 'en',
+            'tokenization_skip_stop_words': 'true',
+            'analyzed': 'true',
+            'tokenization_normalize_lowercase': 'true'
+          }
+        },
+        {
+          on: 'user_name',
+          using: 'org.apache.cassandra.index.sasi.SASIIndex',
+          options: {
+            'mode': 'CONTAINS',
+            'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer',
+            'tokenization_enable_stemming': 'true',
+            'tokenization_locale': 'en',
+            'tokenization_skip_stop_words': 'true',
+            'analyzed': 'true',
+            'tokenization_normalize_lowercase': 'true'
+          }
+        },
+        {
+          on: 'first_name',
+          using: 'org.apache.cassandra.index.sasi.SASIIndex',
+          options: {
+            'mode': 'CONTAINS',
+            'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer',
+            'tokenization_enable_stemming': 'true',
+            'tokenization_locale': 'en',
+            'tokenization_skip_stop_words': 'true',
+            'analyzed': 'true',
+            'tokenization_normalize_lowercase': 'true'
+          }
+        },
+        {
+          on: 'last_name',
+          using: 'org.apache.cassandra.index.sasi.SASIIndex',
+          options: {
+            'mode': 'CONTAINS',
+            'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.StandardAnalyzer',
+            'tokenization_enable_stemming': 'true',
+            'tokenization_locale': 'en',
+            'tokenization_skip_stop_words': 'true',
+            'analyzed': 'true',
+            'tokenization_normalize_lowercase': 'true'
+          }
+        },
+      ],
     }
   }
 ];
